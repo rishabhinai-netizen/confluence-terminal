@@ -1,0 +1,49 @@
+name: Daily Confluence refresh
+on:
+  schedule:
+    # 07:00 IST = 01:30 UTC · Mon–Sat
+    - cron: '30 1 * * 1-6'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11', cache: 'pip'}
+      - run: pip install -r requirements.txt
+      - name: Pull AI-2 (Results + Concalls)
+        env: {EQUISENSE_COOKIE: "${{ secrets.EQUISENSE_COOKIE }}"}
+        run: python pull_equisense.py --out-dir data
+      - name: Pull AI-1 (Concalls + Market + 26 Scans)
+        env: {STOCKSCANS_COOKIE: "${{ secrets.STOCKSCANS_COOKIE }}"}
+        continue-on-error: true
+        run: python pull_stockscans.py --out-dir data
+      - name: Rebuild terminal HTML with trend deltas
+        run: |
+          mkdir -p public
+          python build_terminal.py --data-dir data --out "public/index.html" --snapshot-dir snapshots
+          touch public/.nojekyll
+      - name: Commit refreshed data + snapshot
+        run: |
+          git config user.name "confluence-bot"
+          git config user.email "bot@confluence.local"
+          git add data/*.xlsx snapshots/*.json || true
+          git diff --cached --quiet || git commit -m "Daily refresh $(date -u +%Y-%m-%d)"
+          git push || echo "Nothing to push"
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: public}
+      - id: deploy
+        uses: actions/deploy-pages@v4
+      - run: echo "Live at ${{ steps.deploy.outputs.page_url }}"
