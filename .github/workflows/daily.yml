@@ -25,6 +25,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Pull AI-2 (Results + Concalls)
         env: {EQUISENSE_COOKIE: "${{ secrets.EQUISENSE_COOKIE }}"}
+        continue-on-error: true
         run: python pull_equisense.py --out-dir data
       - name: Pull AI-1 (Concalls + Market + 26 Scans)
         env: {STOCKSCANS_COOKIE: "${{ secrets.STOCKSCANS_COOKIE }}"}
