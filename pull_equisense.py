@@ -1,13 +1,11 @@
-"""AI-2 (EquiSense) daily pull — REAL field names from live API."""
+"""AI-2 pull with real API field names."""
 from __future__ import annotations
 import argparse, json, os, sys, time
 from pathlib import Path
-import requests
-import pandas as pd
+import requests, pandas as pd
 
 BASE = 'https://equisense.ai'
-UA = 'Mozilla/5.0 ConfluenceTerminal/5'
-PAGE = 50
+UA = 'Mozilla/5.0 ConfluenceTerminal/6'
 Q, FY = 1, 2027
 
 def _epoch(e):
@@ -15,22 +13,17 @@ def _epoch(e):
     try: return pd.to_datetime(int(e), unit='ms').strftime('%Y-%m-%d')
     except: return None
 
-def _sess(ck):
-    s = requests.Session()
-    s.headers.update({'cookie': ck, 'User-Agent': UA, 'Accept': 'application/json'})
-    return s
-
 def _fetch_all(sess, path, extra=''):
     all_rows, page = [], 0
     while True:
-        r = sess.get(f'{BASE}{path}?page={page}&pageSize={PAGE}&quarter={Q}&fy={FY}{extra}', timeout=30)
-        if r.status_code == 401: raise RuntimeError('401 - AI-2 cookie expired. Update EQUISENSE_COOKIE secret.')
+        r = sess.get(f'{BASE}{path}?page={page}&pageSize=50&quarter={Q}&fy={FY}{extra}', timeout=30)
+        if r.status_code == 401: raise RuntimeError('AI-2 cookie expired')
         if r.status_code == 429: time.sleep(60); continue
         r.raise_for_status()
         j = r.json()
         content = j.get('content', [])
         all_rows.extend(content)
-        print(f'  page {page} · +{len(content)} · total {len(all_rows)} / {j.get("totalElements","?")}')
+        if page % 5 == 0: print(f'  page {page} total {len(all_rows)}')
         if not j.get('hasNext') or not content: break
         page += 1
         time.sleep(0.18)
@@ -49,33 +42,24 @@ def _norm_results(raw):
             except: ins_str = str(ins)[:2000]
         rows.append({
             'Symbol': r.get('symbol'), 'Company': r.get('companyName'),
-            'Sector': r.get('companySector'), 'Date': _epoch(r.get('resultAnnouncementEpoch')),
-            'Time': None, 'Market Cap (Cr)': r.get('marketCap'),
-            'Revenue (Cr)': r.get('revenue'), 'EBITDA (Cr)': r.get('ebitda'),
-            'PAT (Cr)': r.get('profitAfterTax'), 'OPM %': r.get('opm'),
-            'Diluted EPS': r.get('dilutedEPS'),
+            'Sector': r.get('companySector'), 'Date': _epoch(r.get('resultAnnouncementEpoch')), 'Time': None,
+            'Market Cap (Cr)': r.get('marketCap'), 'Revenue (Cr)': r.get('revenue'),
+            'EBITDA (Cr)': r.get('ebitda'), 'PAT (Cr)': r.get('profitAfterTax'),
+            'OPM %': r.get('opm'), 'Diluted EPS': r.get('dilutedEPS'),
             'Rev YoY %': r.get('revenueYoyGrowth'), 'EBITDA YoY %': r.get('ebitdaYoyGrowth'),
             'PAT YoY %': r.get('patYoyGrowth'), 'OPM YoY (bps)': r.get('opmYoyBps'),
-            'EPS YoY %': r.get('epsYoyGrowth'),
-            'Rev QoQ %': r.get('revenueSeqGrowth'), 'EBITDA QoQ %': r.get('ebitdaSeqGrowth'),
-            'PAT QoQ %': r.get('patSeqGrowth'), 'OPM QoQ (bps)': r.get('opmSeqBps'),
-            'EPS QoQ %': r.get('epsSeqGrowth'),
-            'Result Verdict': r.get('resultVerdict'),
-            'Verdict Reason': r.get('resultVerdictReason'),
-            'Balance Sheet Health': r.get('balanceSheetHealth'),
-            'PEAD Index': r.get('peadIndex'),
-            'AI Tag (PEAD Label)': r.get('peadLabel'),
-            'PEAD Reason': r.get('peadReason'),
-            'Drift Confidence': r.get('driftConfidence'),
-            'ECS Score': r.get('ecsScore'),
+            'EPS YoY %': r.get('epsYoyGrowth'), 'Rev QoQ %': r.get('revenueSeqGrowth'),
+            'EBITDA QoQ %': r.get('ebitdaSeqGrowth'), 'PAT QoQ %': r.get('patSeqGrowth'),
+            'OPM QoQ (bps)': r.get('opmSeqBps'), 'EPS QoQ %': r.get('epsSeqGrowth'),
+            'Result Verdict': r.get('resultVerdict'), 'Verdict Reason': r.get('resultVerdictReason'),
+            'Balance Sheet Health': r.get('balanceSheetHealth'), 'PEAD Index': r.get('peadIndex'),
+            'AI Tag (PEAD Label)': r.get('peadLabel'), 'PEAD Reason': r.get('peadReason'),
+            'Drift Confidence': r.get('driftConfidence'), 'ECS Score': r.get('ecsScore'),
             'Price Move Since Result %': r.get('priceMovePct'),
-            'Result Day Open': r.get('resultDayOpenPrice'),
-            'Current Price': r.get('currentPrice'),
+            'Result Day Open': r.get('resultDayOpenPrice'), 'Current Price': r.get('currentPrice'),
             'Verdict Based on Concall': r.get('verdictBasedOnConcall'),
-            'Data Verified': r.get('dataVerified'),
-            'Result Summary': r.get('resultSummaryText'),
-            'Key Insights': ins_str,
-            'ISIN': r.get('isin'), 'PDF URL': r.get('pdfUrl'),
+            'Data Verified': r.get('dataVerified'), 'Result Summary': r.get('resultSummaryText'),
+            'Key Insights': ins_str, 'ISIN': r.get('isin'), 'PDF URL': r.get('pdfUrl'),
         })
     return pd.DataFrame(rows)
 
@@ -88,19 +72,16 @@ def _norm_concalls(raw):
             m = fms[i]
             if isinstance(m, str): return m
             if isinstance(m, dict):
-                return f"{m.get('name','')} ({m.get('fiscalYear', m.get('fy',''))}): {m.get('value','')} - {m.get('context','')}"
+                return f"{m.get('name','')} ({m.get('fiscalYear', m.get('fy',''))}): {m.get('value','')}"
         tags = r.get('tags')
         rows.append({
             'Symbol': r.get('symbol'), 'Company': r.get('companyName'),
-            'Sector': r.get('companySector'), 'Date': _epoch(r.get('concallEventEpoch')),
-            'Time': None, 'Market Cap (Cr)': r.get('marketCap'),
-            'ECS Score': r.get('ecsScore'),
-            'Guidance Move': r.get('guidanceMove'),
-            'PEAD Index': r.get('peadIndex'),
+            'Sector': r.get('companySector'), 'Date': _epoch(r.get('concallEventEpoch')), 'Time': None,
+            'Market Cap (Cr)': r.get('marketCap'), 'ECS Score': r.get('ecsScore'),
+            'Guidance Move': r.get('guidanceMove'), 'PEAD Index': r.get('peadIndex'),
             'Forward Metrics Count': r.get('forwardCount') or len(fms),
             'Tags': ', '.join(tags) if isinstance(tags, list) else tags,
-            'Summary': r.get('shortSummaryText'),
-            'Management Guidance': r.get('managementGuidance'),
+            'Summary': r.get('shortSummaryText'), 'Management Guidance': r.get('managementGuidance'),
             'Forward Metric 1': _fm(0), 'Forward Metric 2': _fm(1), 'Forward Metric 3': _fm(2),
             'ISIN': r.get('isin'), 'Recording Link': r.get('recordingLink'),
         })
@@ -126,14 +107,13 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--out-dir', default='data', type=Path); a = ap.parse_args()
     a.out_dir.mkdir(exist_ok=True, parents=True)
     ck = os.environ.get('EQUISENSE_COOKIE')
-    if not ck: sys.exit('EQUISENSE_COOKIE env var not set.')
-    s = _sess(ck)
-    print('[AI-2] Fetching Results...')
+    if not ck: sys.exit('EQUISENSE_COOKIE not set.')
+    s = requests.Session()
+    s.headers.update({'cookie': ck, 'User-Agent': UA, 'Accept':'application/json'})
+    print('Fetching Results...')
     res_raw = _fetch_all(s, '/api/v1/discover/results/glance', '&sortCol=ecsScore&sortDir=desc')
-    print(f'[AI-2] Fetched {len(res_raw)} results')
-    print('[AI-2] Fetching Concalls...')
+    print('Fetching Concalls...')
     conc_raw = _fetch_all(s, '/api/v1/concalls')
-    print(f'[AI-2] Fetched {len(conc_raw)} concalls')
     res_df = _norm_results(res_raw)
     conc_df = _norm_concalls(conc_raw)
     merged = _build_merged(res_df, conc_df)
@@ -143,7 +123,6 @@ def main():
         conc_df.to_excel(w, sheet_name='Concalls (All)', index=False)
     with pd.ExcelWriter(a.out_dir / 'EquiSense Concalls - All Data.xlsx', engine='openpyxl') as w:
         conc_df.to_excel(w, sheet_name='EquiSense Concalls', index=False)
-    print(f'[AI-2] Wrote Excel: Merged {len(merged)}, Results {len(res_df)}, Concalls {len(conc_df)}')
+    print(f'Wrote Excel: Merged {len(merged)}, Results {len(res_df)}, Concalls {len(conc_df)}')
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': main()
