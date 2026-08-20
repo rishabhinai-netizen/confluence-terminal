@@ -707,6 +707,54 @@
 <footer id="footer-note"></footer>
 
 <script>
+
+// ============================================================
+// PASSWORD GATE — casual access control
+// ============================================================
+(function(){
+  const PASSWORD_HASH = "dd56de4137951d9c92681b03416ec15f886b4482a27e3a517d32f085244cbe5d";
+  const STORAGE_KEY = "confluence-auth-ok";
+  async function sha256(s) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function showGate() {
+    document.body.innerHTML = `
+      <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#2D1116,#5C1A24); color:#F4E4C1; font-family:system-ui,-apple-system,Segoe UI,sans-serif;">
+        <div style="background:rgba(0,0,0,0.35); padding:36px 40px; border-radius:12px; border:2px solid #D4AF37; max-width:400px; text-align:center;">
+          <div style="font-family:Georgia,serif; font-size:28px; margin-bottom:6px;">Confluence <em style="color:#D4AF37;">Terminal</em></div>
+          <div style="font-size:12px; color:#c9ad7e; margin-bottom:24px; letter-spacing:0.15em; text-transform:uppercase;">Access required</div>
+          <input type="password" id="__pwd" placeholder="Enter access password" style="width:100%; padding:12px 14px; border:1.5px solid #C9AD7E; border-radius:7px; background:rgba(253,249,240,0.95); color:#1a0a0d; font-size:14px; font-family:inherit; margin-bottom:12px;" autofocus>
+          <button id="__submit" style="width:100%; padding:12px; border:none; border-radius:7px; background:#D4AF37; color:#1a0a0d; font-weight:700; font-family:inherit; font-size:14px; cursor:pointer;">Unlock</button>
+          <div id="__err" style="margin-top:14px; color:#e34948; font-size:12px; min-height:16px;"></div>
+          <div style="margin-top:20px; font-size:11px; color:#8a6b6e; line-height:1.5;">Access is by invitation only. Contact the tool owner for credentials.</div>
+        </div>
+      </div>`;
+    const submit = async () => {
+      const pw = document.getElementById("__pwd").value;
+      const h = await sha256(pw);
+      if (h === PASSWORD_HASH) {
+        try { sessionStorage.setItem(STORAGE_KEY, "1"); } catch(e){}
+        location.reload();
+      } else {
+        document.getElementById("__err").textContent = "Incorrect password.";
+        document.getElementById("__pwd").value = "";
+        document.getElementById("__pwd").focus();
+      }
+    };
+    document.getElementById("__submit").addEventListener("click", submit);
+    document.getElementById("__pwd").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  }
+  try {
+    if (sessionStorage.getItem(STORAGE_KEY) === "1") return;
+  } catch(e){}
+  if (PASSWORD_HASH && PASSWORD_HASH.length === 64) {
+    if (document.body) showGate();
+    else document.addEventListener("DOMContentLoaded", showGate);
+  }
+})();
+
+
 // ============================================================
 // DATA (injected at build time)
 // ============================================================
