@@ -35,6 +35,17 @@ from the Breakout Playbook feed. Scripts here are re-runnable (`CT_SCRATCH` = fo
 - Stock momentum (3m, 6m-1m) and industry momentum: top vs bottom quintile inconsistent month to month (2025–26).
 - New concall reads (candor, tone, earnings quality, analyst sentiment): only exist from Q2 FY27 → forward tracking only.
 
+## Preliminary: StockScans scans (NOT yet rules)
+Membership at 6 month-ends (30 Apr – 30 Sep 2026), forward 20 sessions vs equal-weight market; all liquid stocks on the
+same dates: 40.9% beat, median −2.1%. One mostly-rising regime, and monthly members overlap, so samples are not independent.
+- Led: Early Growth & Relative Strength 57.8% / +1.6% (n 374), Index Outperformance 1Y 55.0% / +1.6%, Industry
+  Outperformance 1Y 55.4% / +1.6%, Explosive Growth 55.3% / +1.5%, Super Growth 55.5% / +1.2%, Buoyant Growth 53.3% / +1.0%.
+- No better than average or worse: Cyclone 40.5% / −2.4%, Volume Rocketing 40.3% / −2.3%, Bulk Block Deals 39.9% / −2.4%,
+  Weekly Trend Twist 34.1% / −2.8%, The Consolidators 36.6% / −3.7%, Bombed Out IPO 39.4% / −1.9%.
+- StockScans' own PEAD scan: 44.0% / −2.0% (n 50) — weaker than our drift rule.
+Next: weekly snapshots back to Apr 2025 (covers the Oct 25–Mar 26 fall), study *new entries* not membership, then decide.
+Full table: run the snippet in HANDOVER §4.1 or `data/scan_prelim_20d.csv` in the scratch folder.
+
 ## Open
 - StockScans 37 pre-built scans: point-in-time membership history being pulled (`pull_ss_scanhist.py`, month-ends first,
   then week-ends back to Apr 2025; StockScans throttles at ~50–300 calls per window). Next: event study on scan *entries*.
