@@ -6,3 +6,10 @@ data/_ckpt/
 venv/
 public/
 
+
+# never commit secrets or scratch data
+.env
+*.key
+secrets/
+node_modules/
+__pycache__/

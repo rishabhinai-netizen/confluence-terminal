@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confluence Terminal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --binding:#7B1E28; --binding-2:#5E1520; --gold:#B98A2E; --gold-soft:#E7D3A6;
+  --page:#FFFEFA; --ruled:#F8F3E6; --line:#E9DFC8; --ink:#23201B; --muted:#6E655A;
+  --gain:#2E6B45; --gain-bg:#E8F2EA; --loss:#A33A2A; --loss-bg:#F8E7E2; --caution:#B97F12; --caution-bg:#FBF0D6;
+  --sans:"IBM Plex Sans",system-ui,sans-serif; --serif:"Literata",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 var(--sans);font-feature-settings:"tnum" 1}
+a{color:var(--binding);text-underline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+@media (max-width:640px){.wrap{padding:0 16px}}
+
+/* binding strip + masthead */
+.binding{height:10px;background:var(--binding);border-bottom:3px solid var(--gold)}
+.mast{padding-top:22px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.mast-top{display:flex;gap:16px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.brand{font:700 22px/1.2 var(--serif);color:var(--binding);letter-spacing:.2px}
+.asof{color:var(--muted);font-size:13.5px}
+.regime{display:flex;gap:22px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.regime h1{font:600 clamp(22px,3.2vw,31px)/1.25 var(--serif);margin:0;max-width:30ch}
+.regime p{margin:6px 0 0;color:var(--muted);max-width:68ch}
+.fresh{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;font-size:13px;color:var(--muted)}
+.fresh span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--gain);vertical-align:1px}
+.fresh .stale::before{background:var(--caution)} .fresh .dead::before{background:var(--loss)}
+
+/* the audit stamp: the one loud element */
+.stamp{display:inline-block;border:3px double currentColor;border-radius:6px;padding:6px 12px 5px;font:700 15px/1.1 var(--serif);
+  letter-spacing:1.5px;text-transform:uppercase;transform:rotate(-4deg);white-space:nowrap;opacity:.92}
+.stamp small{display:block;font:500 10.5px/1.3 var(--sans);letter-spacing:.3px;text-transform:none;margin-top:3px}
+.stamp.big{font-size:22px;padding:10px 18px 8px;border-width:4px}
+.s-go{color:var(--gain)} .s-wait{color:var(--caution)} .s-stop{color:var(--loss)} .s-info{color:var(--binding)}
+@media (prefers-reduced-motion:no-preference){.stamp.big{animation:press .5s ease-out 1}@keyframes press{from{transform:rotate(-4deg) scale(1.35);opacity:0}to{transform:rotate(-4deg) scale(1);opacity:.92}}}
+
+/* nav as ledger tabs */
+nav{position:sticky;top:0;z-index:5;background:var(--page);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav button{all:unset;cursor:pointer;padding:12px 14px 10px;font:500 14px var(--sans);color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected=true]{color:var(--binding);border-bottom-color:var(--gold)}
+nav button .n{font-size:11.5px;color:var(--muted);margin-left:5px}
+
+main{padding:24px 0 80px}
+section[hidden]{display:none}
+h2{font:600 21px/1.3 var(--serif);margin:30px 0 4px;color:var(--ink)}
+h2:first-child{margin-top:0}
+h3{font:600 16px/1.35 var(--serif);margin:0}
+.lede{color:var(--muted);margin:0 0 14px;max-width:72ch}
+.note{font-size:13px;color:var(--muted)}
+
+/* ruled panels */
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.panel{background:var(--ruled);border:1px solid var(--line);border-left:4px solid var(--gold);padding:16px 18px}
+.panel.maroon{border-left-color:var(--binding)}
+.kv{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:8px}
+.kv div{min-width:92px}
+.kv b{display:block;font:600 19px/1.2 var(--sans)}
+.kv span{font-size:12.5px;color:var(--muted)}
+
+.pos{color:var(--gain)} .neg{color:var(--loss)} .warn{color:var(--caution)}
+.chip{display:inline-block;font-size:12px;line-height:1.5;padding:1px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;margin:2px 4px 2px 0;color:var(--ink);white-space:nowrap}
+.chip.g{background:var(--gain-bg);border-color:#C9DFCD;color:var(--gain)} .chip.r{background:var(--loss-bg);border-color:#EBCBC2;color:var(--loss)} .chip.a{background:var(--caution-bg);border-color:#EEDBA9;color:#8C5F08}
+.sym{all:unset;cursor:pointer;font:600 15px var(--serif);color:var(--binding);border-bottom:1px dotted var(--gold)}
+.sym:hover{border-bottom-style:solid}
+
+/* ledger entries (drift cards) */
+.entry{border-top:2px solid var(--binding);padding:16px 0 18px;margin-top:6px}
+.entry + .entry{border-top:1px solid var(--line)}
+.e-head{display:grid;grid-template-columns:auto 1fr auto;gap:6px 16px;align-items:start}
+.e-pos{font:700 26px/1 var(--serif);color:var(--gold);min-width:30px}
+.e-name{font:600 19px/1.25 var(--serif)} .e-sub{color:var(--muted);font-size:13px;margin-top:2px}
+.e-nums{display:flex;flex-wrap:wrap;gap:8px 24px;margin:12px 0 6px 46px}
+.e-nums div{min-width:84px} .e-nums b{display:block;font:600 17px/1.2 var(--sans)} .e-nums span{font-size:12px;color:var(--muted)}
+.e-body{margin-left:46px}
+.sources{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:10px}
+.src{border:1px solid var(--line);background:#fff;padding:10px 12px}
+.src h4{margin:0 0 4px;font:600 13px var(--sans);color:var(--muted)}
+details{margin-top:10px} summary{cursor:pointer;color:var(--binding);font-weight:500;font-size:14px}
+.ins{margin:8px 0 0;padding-left:18px} .ins li{margin:4px 0;max-width:80ch}
+.ins .P::marker{color:var(--gain)} .ins .N::marker{color:var(--loss)}
+.quote{border-left:3px solid var(--gold-soft);padding:2px 0 2px 12px;margin:8px 0;max-width:82ch;color:#3A342C}
+@media (max-width:640px){.e-nums,.e-body{margin-left:0}.e-head{grid-template-columns:auto 1fr}.e-head .stamp{grid-column:1/-1;justify-self:start}}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);background:#fff}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;font-weight:600;color:var(--muted);background:var(--ruled);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:default}
+th.sortable{cursor:pointer} th.sortable:hover{color:var(--binding)}
+td{padding:7px 10px;border-bottom:1px solid #F1EBDC;vertical-align:top}
+td.num,th.num{text-align:right}
+tr:hover td{background:#FFFCF2}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.filters button{all:unset;cursor:pointer;font-size:13px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;background:#fff}
+.filters button[aria-pressed=true]{background:var(--binding);border-color:var(--binding);color:#fff}
+input[type=search]{font:15px var(--sans);padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--gold);width:min(520px,100%);background:#fff}
+
+/* drawer (stock dossier) */
+.drawer{position:fixed;inset:0 0 0 auto;width:min(860px,100%);background:var(--page);box-shadow:-12px 0 30px rgba(60,30,20,.18);z-index:20;overflow-y:auto;transform:translateX(100%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s}
+.drawer.open{transform:none;visibility:visible;transition:transform .25s ease}
+.drawer .bar{position:sticky;top:0;background:var(--binding);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--gold)}
+.drawer .bar button{all:unset;cursor:pointer;font-size:14px;padding:4px 10px;border:1px solid rgba(255,255,255,.5);border-radius:4px}
+.drawer .inner{padding:18px}
+.scrim{position:fixed;inset:0;background:rgba(35,32,27,.28);z-index:15;display:none} .scrim.open{display:block}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+svg.chart{width:100%;height:auto;display:block}
+.empty{padding:18px;border:1px dashed var(--line);color:var(--muted);background:#fff}
+.err{padding:18px;border:1px solid #EBCBC2;background:var(--loss-bg);color:var(--loss)}
+footer{border-top:1px solid var(--line);padding:18px 0 40px;color:var(--muted);font-size:12.5px}
+ol.steps{padding-left:20px;max-width:78ch} ol.steps li{margin:8px 0}
+</style>
+</head>
+<body>
+<div class="binding" aria-hidden="true"></div>
+<header class="wrap mast">
+  <div class="mast-top"><div class="brand">Confluence Terminal</div><div class="asof" id="asof">Loading…</div></div>
+  <div class="regime" id="regime"></div>
+  <div class="fresh" id="fresh"></div>
+</header>
+<nav aria-label="Sections"><div class="wrap" role="tablist" id="tabs"></div></nav>
+<main class="wrap" id="main"><div class="empty">Loading the ledger…</div></main>
+<footer class="wrap">Private research notebook. Decision support only, not investment advice. Sources: EquiSense, StockScans, adjusted NSE/BSE prices from the Breakout Playbook feed. Every rule shown here is re-measured every night from raw data.</footer>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Stock dossier"><div class="bar"><b id="dTitle">Stock</b><button id="dClose">Close</button></div><div class="inner" id="dBody"></div></aside>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const n0 = (v) => (v == null || isNaN(v) ? "—" : Math.round(+v).toLocaleString("en-IN"));
+const n1 = (v) => (v == null || isNaN(v) ? "—" : (+v).toFixed(1));
+const pct = (v, d = 1) => (v == null || isNaN(v) ? "—" : (v > 0 ? "+" : v < 0 ? "▼ " : "") + Math.abs(+v).toFixed(d) + "%");
+const cls = (v) => (v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "");
+const dt = (s) => { if (!s) return "—"; const d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }); };
+const dtl = (s) => { if (!s) return "—"; const d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); };
+const ago = (s) => { if (!s) return null; return (Date.now() - new Date(s).getTime()) / 36e5; };
+const tv = (sym) => `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(/^\d+$/.test(sym) ? "BSE:" + sym : "NSE:" + sym)}`;
+
+const RULES = {
+  drift_buy: { label: "Drift buy", tone: "g", plain: "Strong quarter (profit +25% or more, revenue +15% or more) and the stock rose 3%+ through the session after the result." },
+  avoid_miss_fall: { label: "Missed and fell", tone: "r", plain: "Result missed (or profit down 10%+) and the stock fell 3%+ after it." },
+  avoid_stressed: { label: "Stressed balance sheet", tone: "r", plain: "EquiSense rated the balance sheet as stressed." },
+  avoid_guidance_cut: { label: "Guidance cut", tone: "r", plain: "Management cut its guidance on the concall." },
+  guidance_missed: { label: "Missed own guidance", tone: "r", plain: "The quarter fell short of what management had promised." },
+  flag_bulk_churn: { label: "Bulk-deal churn", tone: "r", plain: "Same-day buy-and-sell bulk deals worth 0.1%+ of market cap (intraday churn)." },
+  flag_insider_sell: { label: "Insider selling", tone: "a", plain: "Selling by insiders who are not promoters (directors, KMP, designated persons)." },
+  in_play_bulk: { label: "In play (bulk deal)", tone: "g", plain: "A bulk buy or sell worth 0.1%+ of market cap: someone large is active in the stock." },
+  guidance_raised: { label: "Guidance raised", tone: "g", plain: "Management raised its guidance on the concall." },
+  promoter_buy: { label: "Promoter buying", tone: "", plain: "Promoter or promoter-group purchase disclosed." },
+};
+const BASE = { result: "all_result", concall: "all_concall", smart: "all_smart" };
+let D = null, TAB = "today";
+
+function ev(sig, h, p = "all") { return (D.evidence || []).find((e) => e.s === sig && e.h === h && e.p === p); }
+function evLine(sig, h = 60, p = "all") {
+  const e = ev(sig, h, p); if (!e || e.n < 30) return `<span class="note">Fewer than 30 past cases at ${h} sessions — not enough to measure yet.</span>`;
+  const b = ev(BASE[e.f] || "all_result", h, p);
+  return `<span class="note">Past ${n0(e.n)} cases: <b class="${e.hit >= (b?.hit ?? 50) ? "pos" : "neg"}">${n1(e.hit)}%</b> beat the market over ${h} sessions, median <b class="${cls(e.med)}">${pct(e.med)}</b> vs market${b ? ` (all ${e.f === "smart" ? "deals" : e.f + "s"}: ${n1(b.hit)}%, ${pct(b.med)})` : ""}.</span>`;
+}
+const symBtn = (isin, sym) => `<button class="sym" data-isin="${esc(isin)}">${esc(sym || isin)}</button>`;
+
+async function load() {
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" });
+    if (!r.ok) throw new Error("The data endpoint answered " + r.status + ". If this persists, the nightly build may have failed — check ct_runs.");
+    D = await r.json();
+    render();
+  } catch (e) { $("#main").innerHTML = `<div class="err">${esc(e.message)}</div>`; $("#asof").textContent = ""; }
+}
+
+function render() {
+  const m = D.meta, mk = m.mkt;
+  $("#asof").textContent = `Prices to ${dtl(m.as_of)}. Built ${new Date(m.built_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.`;
+  const up = mk.up, d60u = ev("drift_buy", 60, "mkt_up"), d60d = ev("drift_buy", 60, "mkt_down");
+  $("#regime").innerHTML = `
+    <span class="stamp big ${up ? "s-go" : "s-wait"}">${up ? "Green light" : "Caution"}<small>market ${mk.vs_sma > 0 ? "above" : "below"} 50-day trend</small></span>
+    <div><h1>${up ? "The market is above its 50-day trend. Drift buys can be taken at normal size." : "The market is below its 50-day trend. Treat drift buys as a watchlist or take half size."}</h1>
+    <p>Equal-weight index of ~${n0(1550)} liquid NSE/BSE stocks is ${pct(mk.vs_sma)} vs its 50-day average (${pct(mk.r20)} over 20 sessions).
+    ${d60u && d60d ? `Drift buys beat the market ${n1(d60u.hit)}% of the time in up-trends (median ${pct(d60u.med)} over 60 sessions) but only ${n1(d60d.hit)}% in down-trends (${pct(d60d.med)}).` : ""}</p></div>`;
+  const f = m.fresh, fr = [];
+  const tick = (label, ts, warnH, deadH) => { const h = ago(ts); const c = h == null ? "dead" : h > deadH ? "dead" : h > warnH ? "stale" : ""; fr.push(`<span class="${c}">${label} ${ts ? dt(ts) : "not yet"}</span>`); };
+  tick("Prices", f.prices + "T18:00:00+05:30", 30, 80); tick("EquiSense", f.es_run, 30, 80); tick("StockScans", f.ss_run, 30, 80); tick("Evidence", f.stats_at, 30, 80);
+  $("#fresh").innerHTML = fr.join("");
+  const tabs = [["today", "Today"], ["drift", "Drift buys", D.drift.length], ["flags", "Red flags", D.avoid.length], ["play", "In play", D.in_play.length + D.catalysts.length],
+    ["sectors", "Sectors"], ["lookup", "Stock lookup"], ["evidence", "Evidence"], ["track", "Track record", D.track.length], ["how", "How to use"]];
+  $("#tabs").innerHTML = tabs.map(([k, l, n]) => `<button role="tab" aria-selected="${k === TAB}" data-tab="${k}">${l}${n != null ? `<span class="n">${n}</span>` : ""}</button>`).join("");
+  show(TAB);
+}
+
+function show(t) {
+  TAB = t; document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === t));
+  const V = { today: vToday, drift: vDrift, flags: vFlags, play: vPlay, sectors: vSectors, lookup: vLookup, evidence: vEvidence, track: vTrack, how: vHow }[t];
+  $("#main").innerHTML = V(); if (t === "lookup") wireLookup(); if (t === "flags") wireFilters();
+  wireSort(); history.replaceState(null, "", "#" + t);
+}
+
+/* ---------------- Today ---------------- */
+function marketChart(path) {
+  if (!path?.length) return "";
+  const W = 560, H = 150, P = 8, xs = path.map((_, i) => P + (i * (W - 2 * P)) / (path.length - 1));
+  const vals = path.flatMap((p) => [p[1], p[2]]).filter((v) => v != null), lo = Math.min(...vals), hi = Math.max(...vals);
+  const y = (v) => H - P - ((v - lo) / (hi - lo || 1)) * (H - 2 * P);
+  const line = (k) => path.map((p, i) => (p[k] == null ? "" : `${i ? "L" : "M"}${xs[i].toFixed(1)},${y(p[k]).toFixed(1)}`)).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Market index and its 50-day average over the last six months">
+    <path d="${line(2)}" fill="none" stroke="#B98A2E" stroke-width="1.6" stroke-dasharray="4 3"/>
+    <path d="${line(1)}" fill="none" stroke="#7B1E28" stroke-width="2"/>
+    </svg><div class="note">Maroon line: market index. Gold dashes: its 50-day average. Last six months.</div>`;
+}
+function vToday() {
+  const m = D.meta, s = m.season, b = D.ss_breadth || {};
+  const br = (k) => { const a = b[k]; return a?.length ? a[a.length - 1][3] : null; };
+  const recentFlags = D.avoid.filter((a) => (Date.now() - new Date(a.d)) / 864e5 <= 4);
+  const byRule = {}; recentFlags.forEach((a) => (byRule[a.rule] = (byRule[a.rule] || 0) + 1));
+  const cal = D.calendar?.concalls || []; const soon = cal.filter((c) => { const h = (new Date(c[3]) - Date.now()) / 36e5; return h > -2 && h < 72; });
+  return `
+  <div class="grid">
+    <div class="panel maroon"><h3>Market trend</h3>${marketChart(m.mkt.path)}
+      <div class="kv"><div><b class="${cls(m.mkt.vs_sma)}">${pct(m.mkt.vs_sma)}</b><span>vs 50-day average</span></div>
+      <div><b>${br("p_a_ema_50d") != null ? n1(br("p_a_ema_50d")) + "%" : "—"}</b><span>of stocks above 50-day EMA</span></div>
+      <div><b>${br("p_a_ema_200d") != null ? n1(br("p_a_ema_200d")) + "%" : "—"}</b><span>above 200-day EMA</span></div>
+      <div><b>${br("p_l_5_52wh") != null ? n1(br("p_l_5_52wh")) + "%" : "—"} / ${br("p_l_5_52wl") != null ? n1(br("p_l_5_52wl")) + "%" : "—"}</b><span>of stocks within 5% of 52-week high / low</span></div></div></div>
+    <div class="panel"><h3>Q${s.q} FY${String(s.fy).slice(2)} results season so far</h3>
+      <div class="kv"><div><b>${n0(s.n)}</b><span>results analysed</span></div><div><b class="pos">${n0(s.beat)}</b><span>beat</span></div>
+      <div><b class="neg">${n0(s.miss)}</b><span>missed</span></div><div><b>${n0(s.inline)}</b><span>in line</span></div><div><b>${n0(s.drift)}</b><span>became drift buys</span></div></div>
+      <p class="note">Verdicts are EquiSense's. A beat alone is not a buy signal here: only beats the market agrees with (stock up 3%+) have carried an edge.</p></div>
+  </div>
+  <h2>What needs your attention</h2>
+  <div class="grid">
+    <div class="panel"><h3>${D.drift.length} drift buy${D.drift.length === 1 ? "" : "s"} live</h3>
+      <p class="note">Entries still inside their 10-session window.</p>
+      ${D.drift.length ? D.drift.slice(0, 6).map((c) => `<div style="margin:6px 0">${symBtn(c.isin, c.sym)} <span class="note">reaction ${pct(c.react)}, profit ${pct(c.res?.pat_yoy, 0)}, day ${c.age + 1} of 10</span></div>`).join("") : `<div class="note">None today. They appear as results come in through the season.</div>`}
+      <p><button class="sym" data-go="drift">Open drift buys</button></p></div>
+    <div class="panel"><h3>${D.pending.length} strong result${D.pending.length === 1 ? "" : "s"} waiting for tomorrow's close</h3>
+      <p class="note">Profit +25% and revenue +15% announced after the last close. They become drift buys only if the stock closes 3%+ above its pre-result price.</p>
+      ${D.pending.slice(0, 8).map((p) => `<div style="margin:6px 0">${symBtn(p.isin, p.sym)} <span class="note">profit ${pct(p.pat_yoy, 0)}, revenue ${pct(p.rev_yoy, 0)}${p.verdict ? ", " + esc(p.verdict.toLowerCase()) : ""}, last close ₹${n1(p.last_c)}</span></div>`).join("") || `<div class="note">None right now.</div>`}</div>
+    <div class="panel maroon"><h3>${recentFlags.length} red flag${recentFlags.length === 1 ? "" : "s"} in the last 4 days</h3>
+      ${Object.entries(byRule).map(([r, n]) => `<span class="chip ${RULES[r]?.tone || ""}">${esc(RULES[r]?.label || r)}: ${n}</span>`).join("") || `<div class="note">Nothing new.</div>`}
+      <p><button class="sym" data-go="flags">Check against your holdings</button></p></div>
+    <div class="panel"><h3>Concalls in the next 3 days</h3>
+      ${soon.slice(0, 12).map((c) => `<div style="margin:4px 0"><b>${esc(c[1].split(":")[1])}</b> <span class="note">${esc(c[2])}, ${new Date(c[3]).toLocaleString("en-IN", { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("") || `<div class="note">No concalls scheduled in the next 3 days.</div>`}
+      ${D.calendar?.results?.totalUpcomingCount ? `<p class="note">${n0(D.calendar.results.totalUpcomingCount)} results due in the coming weeks (StockScans calendar).</p>` : ""}</div>
+  </div>`;
+}
+
+/* ---------------- Drift buys ---------------- */
+const lab = (v) => (v ? esc(String(v).toLowerCase().replace(/_/g, " ")) : "—");
+function srcBlocks(c) {
+  const r = c.res || {}, cc = c.cc || {}, ss = c.ss || {};
+  const sent = ["Bearish", "Cautious", "Neutral", "Optimistic", "Bullish"][ss.sent] ?? null;
+  const bad = [], good = [];
+  if (r.bsh === "STRESSED" || r.bsh === "WEAK") bad.push(`balance sheet ${lab(r.bsh)}`);
+  if (cc.eq && cc.eq !== "CLEAN") bad.push(`earnings quality ${lab(cc.eq)}`);
+  if (cc.guid === "CUT") bad.push("guidance cut"); if (cc.deliv === "MISSED") bad.push("missed own guidance");
+  if (ss.sent != null && ss.sent <= 1) bad.push(`StockScans tone ${sent?.toLowerCase()}`);
+  if (r.pead === "Weak") bad.push("EquiSense drift label weak");
+  if (cc.guid === "RAISED") good.push("guidance raised"); if (cc.deliv === "MET" || cc.deliv === "BEAT") good.push("delivered on guidance");
+  const fg = {}; (c.flags || []).filter((f) => f.rule !== "drift_buy").forEach((f) => { (fg[f.rule] ||= { rule: f.rule, n: 0, d: f.d }).n++; if (f.d > fg[f.rule].d) fg[f.rule].d = f.d; });
+  const flags = Object.values(fg), redFlags = flags.filter((f) => RULES[f.rule]?.tone === "r");
+  return `
+  <div class="sources">
+    <div class="src"><h4>Result (EquiSense, ${esc(r.q || "")})</h4>
+      ${r.verdict ? `<span class="chip ${r.verdict === "BEAT" ? "g" : r.verdict === "MISS" ? "r" : ""}">${lab(r.verdict)}</span>` : ""}
+      ${r.pead ? `<span class="chip">drift label ${lab(r.pead)}</span>` : ""}${r.bsh ? `<span class="chip ${r.bsh === "STRESSED" ? "r" : r.bsh === "WEAK" ? "a" : ""}">balance sheet ${lab(r.bsh)}</span>` : ""}
+      <div class="note" style="margin-top:6px">Revenue ₹${n0(r.rev)} cr (${pct(r.rev_yoy, 0)}), profit ₹${n0(r.pat)} cr (${pct(r.pat_yoy, 0)}), margin ${n1(r.opm)}% (${r.opm_bps != null ? (r.opm_bps > 0 ? "+" : "") + n0(r.opm_bps) + " bps" : "—"})${c.prev_res ? `. Previous quarter: revenue ${pct(c.prev_res.rev_yoy, 0)}, profit ${pct(c.prev_res.pat_yoy, 0)}.` : ""}</div></div>
+    <div class="src"><h4>Concall (EquiSense${cc.q ? ", " + esc(cc.q) : ""})</h4>
+      ${cc.guid ? `<span class="chip ${cc.guid === "RAISED" ? "g" : cc.guid === "CUT" ? "r" : ""}">guidance ${lab(cc.guid)}</span>` : `<span class="note">No concall analysed yet.</span>`}
+      ${cc.deliv ? `<span class="chip ${cc.deliv === "MISSED" ? "r" : cc.deliv === "MET" || cc.deliv === "BEAT" ? "g" : ""}">delivery ${lab(cc.deliv)}</span>` : ""}
+      ${cc.tone ? `<span class="chip">tone ${lab(cc.tone)}</span>` : ""}${cc.candor ? `<span class="chip ${cc.candor === "LOW" ? "a" : ""}">candor ${lab(cc.candor)}</span>` : ""}
+      ${cc.eq ? `<span class="chip ${cc.eq === "CLEAN" ? "g" : "a"}">earnings ${lab(cc.eq)}</span>` : ""}${cc.story ? `<span class="chip">${lab(cc.story)}</span>` : ""}</div>
+    <div class="src"><h4>StockScans</h4>
+      ${ss.score != null ? `<span class="chip">result score ${n0(ss.score)}/100</span>` : `<span class="note">No concall score yet.</span>`}${sent ? `<span class="chip ${ss.sent >= 3 ? "g" : ss.sent <= 1 ? "r" : ""}">${sent.toLowerCase()}</span>` : ""}
+      ${ss.congrats ? `<span class="chip">${ss.congrats} analysts congratulated</span>` : ""}
+      ${(ss.tags || []).map((t) => `<div class="note">${esc(t)}</div>`).join("")}
+      ${(c.scans || []).length ? `<div style="margin-top:6px">${c.scans.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>` : ""}</div>
+  </div>
+  ${bad.length || good.length || flags.length ? `<p style="margin:10px 0 0">${good.map((g) => `<span class="chip g">${esc(g)}</span>`).join("")}${bad.map((b) => `<span class="chip r">${esc(b)}</span>`).join("")}${flags.map((f) => `<span class="chip ${RULES[f.rule]?.tone || ""}">${esc(RULES[f.rule]?.label || f.rule)}${f.n > 1 ? " ×" + f.n : ""}, latest ${dt(f.d)}</span>`).join("")}
+    ${bad.length || redFlags.length ? `<br><span class="note">Sources disagree on this one. Shown side by side, not blended: decide whether the concerns matter for you.</span>` : ""}</p>` : ""}`;
+}
+function detailBlock(c) {
+  const r = c.res || {}, cc = c.cc || {};
+  return `<details><summary>Read the result and concall notes</summary>
+    ${r.why ? `<p class="quote">${esc(r.why)}</p>` : ""}
+    ${(r.ins || []).length ? `<ul class="ins">${r.ins.map((i) => `<li class="${i.s === "POSITIVE" ? "P" : i.s === "NEGATIVE" ? "N" : ""}">${esc(i.t)}</li>`).join("")}</ul>` : ""}
+    ${cc.summary ? `<h4 style="margin:12px 0 2px">Concall summary</h4><p class="quote">${esc(cc.summary.replace(/\*/g, ""))}</p>` : ""}
+    ${cc.guidance ? `<h4 style="margin:12px 0 2px">Management guidance</h4><p class="quote">${esc(cc.guidance)}</p>` : ""}
+    <p class="note">${[r.pdf && `<a href="${esc(r.pdf)}" target="_blank" rel="noopener">Result filing (PDF)</a>`, cc.audio && `<a href="${esc(cc.audio)}" target="_blank" rel="noopener">Concall audio</a>`,
+      `<a href="${tv(c.sym)}" target="_blank" rel="noopener">Chart on TradingView</a>`].filter(Boolean).join(", ")}</p></details>`;
+}
+function vDrift() {
+  const s = ev("drift_buy", 60), sU = ev("drift_buy", 60, "mkt_up"), b = ev("all_result", 60);
+  const head = `<h2>Drift buys</h2><p class="lede">${esc(RULES.drift_buy.plain)} Ranked by the size of that reaction (bigger has been better), at most two per sector at the top. Each stays here for 10 sessions — the edge held for entries up to 8 sessions late.</p>
+    <div class="panel" style="margin-bottom:12px">${evLine("drift_buy", 20)}<br>${evLine("drift_buy", 60)}<br>${evLine("drift_buy", 60, "mkt_up").replace("Past", "In up-trends, past")}
+    <p class="note" style="margin-bottom:0">Risk: these are volatile after the jump. A −8% stop was hit in about half of past cases without improving the average outcome; a ~12% stop with smaller size kept more winners. Exit after ~60 sessions — that is where the measured edge ends.</p></div>`;
+  if (!D.drift.length) return head + `<div class="empty">No drift buys in the last 10 sessions. They appear as strong results get a positive reaction — see “waiting for tomorrow's close” on Today.</div>`;
+  return head + D.drift.map((c) => `
+    <article class="entry">
+      <div class="e-head"><div class="e-pos">${c.pos}</div>
+        <div><div class="e-name">${symBtn(c.isin, c.sym)} <span style="font-weight:500">${esc(c.name || "")}</span></div>
+        <div class="e-sub">${esc(c.sector || c.grp || "")}. Result ${dt(c.res?.at)}, entered ${dt(c.entry_d)} at ₹${n1(c.entry_c)}, day ${c.age + 1} of 10${c.sec_rank > 2 ? ". Third or later in its sector — lower priority" : ""}.</div></div>
+        <span class="stamp ${D.meta.mkt.up ? "s-go" : "s-wait"}">${D.meta.mkt.up ? "Drift buy" : "Watch"}<small>${D.meta.mkt.up ? "market in up-trend" : "half size, market weak"}</small></span></div>
+      <div class="e-nums">
+        <div><b class="${cls(c.react)}">${pct(c.react)}</b><span>reaction to result</span></div>
+        <div><b class="${cls(c.res?.pat_yoy)}">${pct(c.res?.pat_yoy, 0)}</b><span>profit YoY</span></div>
+        <div><b class="${cls(c.res?.rev_yoy)}">${pct(c.res?.rev_yoy, 0)}</b><span>revenue YoY</span></div>
+        <div><b class="${cls(c.since)}">${pct(c.since)}</b><span>since entry</span></div>
+        <div><b>${pct(c.off_hi)}</b><span>from 52-week high</span></div>
+        <div><b>₹${n0(c.mcap)} cr</b><span>market cap${c.pe ? ", P/E " + n0(c.pe) : ""}</span></div>
+      </div>
+      <div class="e-body">${srcBlocks(c)}${detailBlock(c)}</div>
+    </article>`).join("");
+}
+
+/* ---------------- Red flags ---------------- */
+let FLAG = "all";
+function flagDetail(a) {
+  const x = a.a || {};
+  if (a.kind === "result") return `${x.q || ""}: profit ${pct(x.pat, 0)}, revenue ${pct(x.rev, 0)}${x.verdict ? ", " + lab(x.verdict) : ""}${a.react != null ? `, reaction ${pct(a.react)}` : ""}${x.bsh ? ", balance sheet " + lab(x.bsh) : ""}`;
+  if (a.kind === "concall") return `${x.q || ""}: guidance ${lab(x.guid)}${x.deliv ? ", delivery " + lab(x.deliv) : ""}${x.tone ? ", tone " + lab(x.tone) : ""}`;
+  return `${lab(x.src)} ${lab(x.side)} ₹${n1(x.cr)} cr (${n1(x.pct_mcap)}% of mcap)${x.who ? " by " + esc(x.who) : ""}${x.cat ? " (" + esc(x.cat) + ")" : ""}${a.n > 1 ? `, ${a.n} filings` : ""}`;
+}
+function vFlags() {
+  const rules = [...new Set(D.avoid.map((a) => a.rule))];
+  const rows = D.avoid.filter((a) => FLAG === "all" || a.rule === FLAG);
+  return `<h2>Red flags</h2><p class="lede">Events from the last 15 sessions that were followed by underperformance in the past. Use this as a check on anything you hold or plan to buy — not as a short list.</p>
+  <div class="grid" style="margin-bottom:10px">${rules.map((r) => `<div class="panel maroon"><h3>${esc(RULES[r]?.label || r)}</h3><p class="note" style="margin:4px 0">${esc(RULES[r]?.plain || "")}</p>${evLine(r, r.startsWith("flag") ? 20 : 60)}</div>`).join("")}</div>
+  <div class="filters" role="group" aria-label="Filter flags"><button data-flag="all" aria-pressed="${FLAG === "all"}">All (${D.avoid.length})</button>${rules.map((r) => `<button data-flag="${r}" aria-pressed="${FLAG === r}">${esc(RULES[r]?.label || r)} (${D.avoid.filter((a) => a.rule === r).length})</button>`).join("")}</div>
+  ${rows.length ? `<div class="tbl-wrap"><table class="sortable-t"><thead><tr><th class="sortable" data-k="0">Date</th><th class="sortable" data-k="1">Stock</th><th>Flag</th><th>Detail</th><th class="num sortable" data-k="4">Since</th></tr></thead><tbody>
+  ${rows.map((a) => `<tr><td data-v="${esc(a.d)}">${dt(a.d)}</td><td data-v="${esc(a.sym)}">${symBtn(a.isin, a.sym)}<div class="note">${esc(a.name || "")}</div></td><td><span class="chip ${RULES[a.rule]?.tone || ""}">${esc(RULES[a.rule]?.label || a.rule)}</span></td><td>${flagDetail(a)}</td><td class="num ${cls(a.since)}" data-v="${a.since ?? ""}">${pct(a.since)}</td></tr>`).join("")}
+  </tbody></table></div>` : `<div class="empty">No flags of this type in the last 15 sessions.</div>`}`;
+}
+function wireFilters() { document.querySelectorAll("[data-flag]").forEach((b) => (b.onclick = () => { FLAG = b.dataset.flag; show("flags"); })); }
+
+/* ---------------- In play ---------------- */
+function vPlay() {
+  return `<h2>In play: large bulk deals</h2><p class="lede">Stocks where bulk buys or sells added up to 0.1%+ of market cap in the last 10 sessions. Early evidence only — our deal history starts in July 2026.</p>
+  <div class="panel" style="margin-bottom:12px">${evLine("in_play_bulk", 20)}<br><span class="note">Same-day buy-and-sell churn is excluded here and listed under red flags (it has preceded sharp falls).</span></div>
+  ${D.in_play.length ? `<div class="tbl-wrap"><table class="sortable-t"><thead><tr><th class="sortable" data-k="0">Stock</th><th class="num sortable" data-k="1">% of mcap</th><th class="num sortable" data-k="2">₹ cr</th><th>Sides</th><th>Largest party</th><th>Latest result</th><th class="num sortable" data-k="6">Since first deal</th></tr></thead><tbody>
+  ${D.in_play.map((p) => `<tr><td data-v="${esc(p.sym)}">${symBtn(p.isin, p.sym)}<div class="note">${esc(p.name || "")}, ${dt(p.d)}</div></td><td class="num" data-v="${p.pct}">${n1(p.pct)}%</td><td class="num" data-v="${p.cr}">${n0(p.cr)}</td><td>${(p.sides || []).map((s) => lab(s)).join(", ")}</td><td>${esc(p.who || "")}</td>
+    <td>${p.res ? `${esc(p.res.q)}: profit ${pct(p.res.pat_yoy, 0)}, revenue ${pct(p.res.rev_yoy, 0)}` : "—"}</td><td class="num ${cls(p.since)}" data-v="${p.since ?? ""}">${pct(p.since)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No large bulk deals in the last 10 sessions.</div>`}
+  <h2>Catalysts this week</h2><p class="lede">Order wins, capex and other filings EquiSense rated positive with impact 60+. Not yet measured — shown for context.</p>
+  ${D.catalysts.length ? `<div class="tbl-wrap"><table><thead><tr><th>Filed</th><th>Stock</th><th>What happened</th><th class="num">Impact</th></tr></thead><tbody>
+  ${D.catalysts.map((c) => `<tr><td>${dt(c.at)}</td><td>${c.isin ? symBtn(c.isin, c.sym) : esc(c.sym)}<div class="note">${lab(c.kind)}${c.mcap ? ", ₹" + n0(c.mcap) + " cr" : ""}</div></td><td>${esc(c.head || "")}${c.pdf ? ` <a href="${esc(c.pdf)}" target="_blank" rel="noopener">filing</a>` : ""}</td><td class="num">${n0(c.impact)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No high-impact catalysts filed this week.</div>`}`;
+}
+
+/* ---------------- Sectors ---------------- */
+function vSectors() {
+  const s = D.sectors || {}, ind = s.industry || [];
+  const tbl = (rows) => `<div class="tbl-wrap"><table><thead><tr><th>Industry</th><th>Group</th><th class="num">Score</th><th>Status</th><th class="num">Stocks</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td>${esc(r.k)}</td><td class="note">${esc(r.p || "")}</td><td class="num">${n0(r.s)}</td><td><span class="chip ${r.st === "outperforming" ? "g" : r.st === "underperforming" ? "r" : ""}">${esc(r.st)}</span></td><td class="num">${n0(r.n)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<h2>Sector momentum</h2><p class="lede">StockScans' industry strength scores (0–100) as of ${dtl(s.d)}. Context only: when we tested industry and stock momentum on 2025–26 data, buying the strongest groups did not reliably beat the market. Use it to understand a pick's backdrop, not to choose one.</p>
+  ${ind.length ? `<div class="grid"><div><h3 style="margin:6px 0">Strongest 20</h3>${tbl(ind.slice(0, 20))}</div><div><h3 style="margin:6px 0">Weakest 20</h3>${tbl(ind.slice(-20).reverse())}</div></div>` : `<div class="empty">Sector scores arrive with the next StockScans pull.</div>`}`;
+}
+
+/* ---------------- Lookup ---------------- */
+function vLookup() {
+  return `<h2>Stock lookup</h2><p class="lede">Any liquid NSE/BSE stock: every source side by side, its result and concall history, and what the stock did after each event.</p>
+  <input type="search" id="q" placeholder="Symbol or company name" autocomplete="off" aria-label="Search stocks"><div id="qres" style="margin-top:10px"></div>
+  <h2>Latest result for every stock</h2><p class="lede">Filter this list instead of searching if you prefer: click a column to sort.</p>
+  <div class="tbl-wrap"><table class="sortable-t"><thead><tr><th class="sortable" data-k="0">Stock</th><th>Sector</th><th>Quarter</th><th class="num sortable" data-k="3">Profit YoY</th><th class="num sortable" data-k="4">Revenue YoY</th><th>Verdict</th><th class="num sortable" data-k="6">Reaction</th><th>Signals (120 days)</th></tr></thead><tbody id="lk">
+  ${lookupRows("")}</tbody></table></div>`;
+}
+function lookupRows(q) {
+  q = q.trim().toLowerCase();
+  const rows = (D.lookup || []).filter((r) => !q || (r[1] || "").toLowerCase().includes(q) || (r[2] || "").toLowerCase().includes(q)).sort((a, b) => (b[10] || "").localeCompare(a[10] || "")).slice(0, 300);
+  return rows.map((r) => `<tr><td data-v="${esc(r[1])}">${symBtn(r[0], r[1])}<div class="note">${esc(r[2] || "")}</div></td><td class="note">${esc(r[3] || "")}</td><td>${esc((r[4] || "").replace("FY", " FY"))}</td>
+    <td class="num ${cls(r[5])}" data-v="${r[5] ?? ""}">${pct(r[5], 0)}</td><td class="num ${cls(r[6])}" data-v="${r[6] ?? ""}">${pct(r[6], 0)}</td><td>${lab(r[7])}</td><td class="num ${cls(r[8])}" data-v="${r[8] ?? ""}">${pct(r[8])}</td>
+    <td>${(r[9] || []).map((x) => `<span class="chip ${RULES[x]?.tone || ""}">${esc(RULES[x]?.label || x)}</span>`).join("")}</td></tr>`).join("");
+}
+function wireLookup() {
+  const q = $("#q"); let t;
+  q.oninput = () => { clearTimeout(t); t = setTimeout(async () => {
+    $("#lk").innerHTML = lookupRows(q.value);
+    if (q.value.trim().length < 2) { $("#qres").innerHTML = ""; return; }
+    try { const r = await fetch("/api/q?q=" + encodeURIComponent(q.value.trim())); const j = await r.json();
+      $("#qres").innerHTML = j.length ? j.map((s) => `${symBtn(s.isin, s.sym)} <span class="note">${esc(s.name)}</span>`).join("<br>") : `<span class="note">No liquid stock matches “${esc(q.value)}”.</span>`;
+    } catch { $("#qres").innerHTML = `<span class="note">Search is unavailable right now; the table below still filters.</span>`; }
+  }, 250); };
+  q.focus();
+}
+
+/* ---------------- Evidence ---------------- */
+function vEvidence() {
+  const sigs = ["drift_buy", "in_play_bulk", "guidance_raised", "promoter_buy", "avoid_miss_fall", "avoid_stressed", "avoid_guidance_cut", "guidance_missed", "flag_bulk_churn", "flag_insider_sell", "all_result", "all_concall", "all_smart"];
+  const cell = (s, h, p) => { const e = ev(s, h, p); if (!e) return `<td class="num note">—</td>`; if (e.n < 30) return `<td class="num note" title="only ${e.n} cases so far">too few (${e.n})</td>`; return `<td class="num" title="n=${e.n}, quartiles ${pct(e.p25)} to ${pct(e.p75)}"><b class="${cls(e.med)}">${pct(e.med)}</b><div class="note">${n1(e.hit)}% beat, n ${n0(e.n)}</div></td>`; };
+  return `<h2>Evidence</h2><p class="lede">Every rule on this page, measured on our own data (Jan 2025 to today) and re-measured every night. Each cell: median return versus the equal-weight market, share of cases that beat the market, and the number of cases. Compare each rule with the “all” row of its family below it.</p>
+  <div class="tbl-wrap"><table><thead><tr><th>Rule</th><th class="num">5 sessions</th><th class="num">20 sessions</th><th class="num">60 sessions</th><th class="num">60, market up</th><th class="num">60, market down</th><th class="num">60, last 9 months</th></tr></thead><tbody>
+  ${sigs.map((s) => `<tr><td><b>${esc(RULES[s]?.label || { all_result: "All results (baseline)", all_concall: "All concalls (baseline)", all_smart: "All deals and insider trades (baseline)" }[s])}</b><div class="note" style="max-width:34ch">${esc(RULES[s]?.plain || "")}</div></td>
+    ${cell(s, 5, "all")}${cell(s, 20, "all")}${cell(s, 60, "all")}${cell(s, 60, "mkt_up")}${cell(s, 60, "mkt_down")}${cell(s, 60, "last_9m")}</tr>`).join("")}
+  </tbody></table></div>
+  <h2>How it is measured</h2>
+  <ol class="steps">
+    <li>Entry is the close of the first session after the day the information became public. Nothing uses information you could not have had that evening.</li>
+    <li>Returns are compared with an equal-weight index of every stock trading Rs 2 cr or more a day. Most stocks lag that average (a few big winners pull it up), so the median for “all results” is negative; a rule is useful when it does clearly better than its own baseline.</li>
+    <li>Results filed more than 120 days after the quarter ended are treated as re-filings, not news, and are left out.</li>
+    <li>Rules were chosen on Apr 2025–Mar 2026 data and checked on Apr–Oct 2026 before going on this page. The drift rule held in all three periods tested, including the Oct 2025–Mar 2026 fall.</li>
+  </ol>
+  <h2>What we checked and left out</h2>
+  <ul class="steps">
+    <li>EquiSense's ECS score is today's score stamped on every past quarter, so its history cannot be tested honestly. It is shown on cards for reference only and is not used in any rule.</li>
+    <li>EquiSense's beat/miss and drift labels add almost nothing once a result passes the drift rule; they also exist for only ~14% of results before April 2026.</li>
+    <li>Stock momentum and industry rotation (including StockScans' sector scores) did not reliably beat the market in 2025–26 tests.</li>
+    <li>The newer concall reads (candor, tone, earnings quality) only began with this season, so they are tracked forward and not yet used to rank anything.</li>
+    <li>The 37 StockScans scans are being tested on their historical snapshots; any that show an edge will be added here with their numbers.</li>
+  </ul>`;
+}
+
+/* ---------------- Track record ---------------- */
+function vTrack() {
+  const rows = (D.track || []).map((t) => { const r = t.last_c && t.entry_c ? t.last_c / t.entry_c - 1 : null; return { ...t, r: r == null ? null : r * 100, x: r == null || t.mkt == null ? null : (r - t.mkt) * 100 }; });
+  const done = rows.filter((r) => r.x != null), wins = done.filter((r) => r.x > 0).length;
+  return `<h2>Track record</h2><p class="lede">Every stock that has appeared as a drift buy since this version went live (12 Oct 2026), measured from its entry close. This is the honest test: it only grows forward.</p>
+  ${done.length ? `<div class="panel" style="margin-bottom:12px"><div class="kv"><div><b>${done.length}</b><span>picks</span></div><div><b>${n0((wins / done.length) * 100)}%</b><span>ahead of market</span></div>
+    <div><b class="${cls(median(done.map((r) => r.x)))}">${pct(median(done.map((r) => r.x)))}</b><span>median vs market</span></div></div></div>` : ""}
+  ${rows.length ? `<div class="tbl-wrap"><table class="sortable-t"><thead><tr><th class="sortable" data-k="0">First listed</th><th class="sortable" data-k="1">Stock</th><th class="num">Entry</th><th class="num">Last</th><th class="num sortable" data-k="4">Return</th><th class="num sortable" data-k="5">vs market</th></tr></thead><tbody>
+  ${rows.map((t) => `<tr><td data-v="${esc(t.d)}">${dt(t.d)}</td><td data-v="${esc(t.sym)}">${symBtn(t.isin, t.sym)}</td><td class="num">₹${n1(t.entry_c)} <span class="note">${dt(t.entry_d)}</span></td><td class="num">₹${n1(t.last_c)}</td>
+    <td class="num ${cls(t.r)}" data-v="${t.r ?? ""}">${pct(t.r)}</td><td class="num ${cls(t.x)}" data-v="${t.x ?? ""}">${pct(t.x)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">The first picks are logged tonight.</div>`}`;
+}
+const median = (a) => { a = a.filter((x) => x != null).sort((x, y) => x - y); if (!a.length) return null; const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; };
+
+/* ---------------- How to use ---------------- */
+function vHow() {
+  return `<h2>How to use this, every evening</h2>
+  <ol class="steps">
+    <li>Read the stamp at the top. Green: drift buys at your normal size. Caution: watchlist or half size — the edge mostly disappears when the market is below its 50-day trend.</li>
+    <li>Open Drift buys. Each entry passed one tested rule. Read the three source boxes: if a source raises a concern (stressed balance sheet, guidance cut, low-quality earnings), that is a reason to pass or size down — the page shows the disagreement rather than averaging it away.</li>
+    <li>Prefer the top of the list (bigger reaction has been better) and no more than two per sector. Entries stay valid for 10 sessions, so there is no need to chase on day one.</li>
+    <li>Size small and use a wide stop (~12%); plan to review after about 60 sessions.</li>
+    <li>Before buying anything — from here or elsewhere — check Red flags and the Stock lookup history for it.</li>
+    <li>Check “waiting for tomorrow's close” on Today: those are tomorrow's candidates if the stock reacts well.</li>
+    <li>Once a week, open Evidence and Track record. If the live record drifts away from the history, stop and review rather than adjusting rules to fit a few weeks.</li>
+  </ol>
+  <h2>Keeping it running</h2>
+  <ul class="steps">
+    <li>Everything refreshes on its own each evening (prices, EquiSense, StockScans, then the rebuild) and again in the morning.</li>
+    <li>StockScans needs your login cookie, which expires every 2–3 weeks. When the StockScans tick above turns red, paste a fresh “Copy as cURL” in a chat and it will be stored in the locked secrets table.</li>
+  </ul>`;
+}
+
+/* ---------------- stock dossier drawer ---------------- */
+function priceChart(px) {
+  if (!px?.length) return "";
+  const W = 760, H = 170, P = 6, lo = Math.min(...px.map((p) => p[1])), hi = Math.max(...px.map((p) => p[1]));
+  const x = (i) => P + (i * (W - 2 * P)) / (px.length - 1), y = (v) => H - P - ((v - lo) / (hi - lo || 1)) * (H - 2 * P);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Closing price, last 13 months"><path d="${px.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join("")}" fill="none" stroke="#7B1E28" stroke-width="1.8"/>
+    <text x="${P}" y="14" font-size="11" fill="#6E655A">₹${n1(hi)} high, ₹${n1(lo)} low, ${dt(px[0][0])} to ${dt(px[px.length - 1][0])}</text></svg>`;
+}
+async function openCard(isin) {
+  $("#drawer").classList.add("open"); $("#scrim").classList.add("open"); $("#drawer").setAttribute("aria-hidden", "false");
+  $("#dBody").innerHTML = `<div class="empty">Loading…</div>`; $("#dTitle").textContent = isin;
+  try {
+    const r = await fetch("/api/card?isin=" + encodeURIComponent(isin)); if (!r.ok) throw new Error("Dossier request failed (" + r.status + ").");
+    const c = await r.json(); $("#dTitle").textContent = (c.sym || isin) + (c.name ? " — " + c.name : "");
+    const hist = (c.hist || []).filter((h) => h.valid !== false);
+    $("#dBody").innerHTML = `
+      <div class="e-sub">${esc(c.sector || c.grp || "")}. Last close ₹${n1(c.last_c)} on ${dt(c.last_d)}, ${pct(c.off_hi)} from its 52-week high. Market cap ₹${n0(c.mcap)} cr${c.pe ? ", P/E " + n0(c.pe) : ""}${c.ecs_now ? `. EquiSense ECS today ${n0(c.ecs_now)} (not point-in-time)` : ""}.
+        <a href="${tv(c.sym)}" target="_blank" rel="noopener">Chart</a></div>
+      ${priceChart(c.px)}
+      ${srcBlocks(c)}${detailBlock(c)}
+      <h3 style="margin-top:18px">History: what happened after each event</h3>
+      <p class="note">Reaction is over the result session; then the stock's return versus the market over the next 20 and 60 sessions.</p>
+      ${hist.length ? `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Event</th><th>Detail</th><th class="num">Reaction</th><th class="num">20 sessions</th><th class="num">60 sessions</th></tr></thead><tbody>
+      ${hist.map((h) => `<tr><td>${dt(h.d)}</td><td>${lab(h.kind)}${(h.rules || []).map((x) => ` <span class="chip ${RULES[x]?.tone || ""}">${esc(RULES[x]?.label || x)}</span>`).join("")}</td>
+        <td>${flagDetail({ kind: h.kind, a: h.a })}</td><td class="num ${cls(h.react)}">${h.kind === "result" ? pct(h.react) : ""}</td><td class="num ${cls(h.x20)}">${pct(h.x20)}</td><td class="num ${cls(h.x60)}">${pct(h.x60)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No events on file for this stock.</div>`}
+      ${(c.filings || []).length ? `<h3 style="margin-top:18px">Recent filings</h3>${c.filings.map((f) => `<div style="margin:6px 0">${dt(f.at)} <span class="chip ${f.dir === "POSITIVE" ? "g" : f.dir === "NEGATIVE" ? "r" : ""}">${lab(f.kind)} ${n0(f.impact)}</span> ${esc(f.head || "")}</div>`).join("")}` : ""}`;
+  } catch (e) { $("#dBody").innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+function closeCard() { $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); $("#drawer").setAttribute("aria-hidden", "true"); }
+
+/* ---------------- sorting + events ---------------- */
+function wireSort() {
+  document.querySelectorAll("table.sortable-t th.sortable").forEach((th) => (th.onclick = () => {
+    const tb = th.closest("table").tBodies[0], k = +th.dataset.k, dir = th.dataset.dir === "asc" ? "desc" : "asc"; th.dataset.dir = dir;
+    const val = (tr) => { const td = tr.children[k]; const v = td?.dataset.v ?? td?.textContent ?? ""; const n = parseFloat(v); return v !== "" && !isNaN(n) && /^-?[\d.]+$/.test(v) ? n : v.toString().toLowerCase(); };
+    [...tb.rows].sort((a, b) => { const x = val(a), y = val(b); const r = typeof x === "number" && typeof y === "number" ? x - y : String(x).localeCompare(String(y)); return dir === "asc" ? r : -r; }).forEach((r) => tb.appendChild(r));
+  }));
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab],[data-isin],[data-go]"); if (!t) return;
+  if (t.dataset.tab) show(t.dataset.tab); else if (t.dataset.go) { show(t.dataset.go); window.scrollTo(0, 0); } else if (t.dataset.isin) openCard(t.dataset.isin);
+});
+$("#dClose").onclick = closeCard; $("#scrim").onclick = closeCard;
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCard(); });
+const TABS = ["today", "drift", "flags", "play", "sectors", "lookup", "evidence", "track", "how"];
+window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (D && TABS.includes(h) && h !== TAB) show(h); });
+TAB = (location.hash || "#today").slice(1); if (!TABS.includes(TAB)) TAB = "today";
+load();
+</script>
+</body>
+</html>
