@@ -14,7 +14,7 @@ Written 12 Oct 2026 (v2 go-live). Owner: Rishabh. Keep separate from Breakout Pl
 | Secrets | table `ct_secret` (RLS, no policies): stockscans_cookie, equisense_cookie, bp_anon_key, bp_feed_key, page_key, ingest_key, ct_anon_key, cloudflare_api_token/account_id, github_token. Read via SQL; never paste into repo/memory |
 | Prices | read-only from Breakout Playbook: BP functions `ct_feed_meta_lite`, `ct_feed_prices`, `ct_feed_prices_isins` (+ unused `ct_feed_meta`), gated by `bp_secret.ct_feed_key`. These are the only CT objects inside BP |
 | Code | this repo (`supabase/`, `web/`, `research/`); v1–v8 in `legacy/` |
-| Old public page | rishabhinai-netizen.github.io/confluence-terminal now shows a "no longer public" notice; repo set private |
+| Old public page | rishabhinai-netizen.github.io/confluence-terminal now shows a "no longer public" notice (12 Oct). **Repo is still public — Rishabh to switch it to private** (Settings → General → Danger zone → Change visibility); the session proxy cannot change repo settings |
 
 ## 2. Nightly flow (pg_cron in CT; times IST)
 21:05 EquiSense job (results + concalls of live season, 7-day smart money, catalysts) → 21:20 prices from BP (retries
