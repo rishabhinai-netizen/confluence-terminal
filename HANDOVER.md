@@ -1,13 +1,16 @@
-# Confluence Terminal v3 — HANDOVER (read first in a new chat)
+# Confluence Terminal v4 — HANDOVER (read first in a new chat)
 
-Written 13 Oct 2026 (v3 go-live: "Results Leaders" model). Owner: Rishabh. Keep separate from Breakout Playbook (own chat, own Supabase project).
+Written 13 Oct 2026 (v4 go-live: three books — Trend, Swing, Results Leaders; v3 was Results Leaders alone). Owner: Rishabh. Keep separate from Breakout Playbook (own chat, own Supabase project).
 
 ## Starter message
 > Continue my Confluence Terminal v3. Read `HANDOVER.md` and `research/README.md` in my private repo
 > `rishabhinai-netizen/confluence-terminal` (attach with add_repo, then clone) and memory `/areas/confluence-terminal.md`.
 
 ## 1. What it is now
-One strategy, run as a 15-slot model portfolio, recomputed every night:
+Three model books, a third of capital each, recomputed every night (rules and numbers: research/README.md v4):
+- **Trend** (10 slots): buy at next close after a close above the previous 55-session high close, strongest RS126 first; stop at previous session's 50-day avg (from day 3). Tables ct4_*.
+- **Swing** (10 slots): same with 10-session high; sell at next close after a close below EMA10, max 30 sessions. Tables ct4_*.
+- **Results Leaders** (15 slots, v3 engine, tables ct_model_*):
 - Score every quarterly result against the **previous season's** results: growth ×2 (revenue YoY, PAT YoY, EPS change vs price, OPM change) + trend (vs 200-day avg, vs 52-week high, 200-day slope, 6-month excess run) + market reaction.
 - Buy the top 10% (pr ≥ 0.90) within 10 sessions of the first post-result close, at the close; skip guidance CUT and balance sheet STRESSED; universe mcap ≥ ₹1,000 cr, turnover ≥ ₹5 cr.
 - 15 slots; new-buy size = market gauge (vote of 3: EW index > 100-day avg, % stocks > 50-day > 50, 52w highs > lows). Gauge never forces sales.
@@ -26,7 +29,7 @@ Evidence: `research/README.md` (v3) and the research report artifact (link in th
 
 ## 3. Nightly flow (IST)
 21:05 EquiSense job → 21:20 prices (retries to 23:20) → 23:05 StockScans (breadth etc., resumes every 10 min) →
-**23:40 `ct_v3_nightly()`** (+ 00:40 and 09:00 catch-ups). Steps: concall guidance sync → `ct_v3_market()` (EW index,
+**23:40 `ct4_nightly()`** (+ 00:40 and 09:00 catch-ups) = v3 chain below + `ct4_advance()` (Trend/Swing signals and steps) + `ct4_page_data()`. Steps: concall guidance sync → `ct_v3_market()` (EW index,
 SMA100, breadth from the StockScans snapshot) → `ct_v3_features(q-1)` + `ct_v3_score(q-1)` for the live seasons →
 `ct_model_advance()` (only through sessions whose prices and breadth are complete) → `ct_v3_page_data()` into `ct_page('data')`.
 Health: `select kind, run_at, ok, note from ct_runs order by run_at desc limit 10;`  Manual run: `select ct_v3_nightly();` (~30 s).
@@ -36,15 +39,15 @@ Tables: `ct_days3`, `ct_mkt3`, `ct_breadth`, `ct_ev3` (features, scores, pr), `c
 The model was replayed from 1 Jan 2025 with the live code; live from 13 Oct 2026.
 
 ## 4. Page deploy
-Build: `CT_WORK=<work dir> python3 research/v3/build_site.py <report_url> '<validation json>'` writes `<work>/site/`
-(evidence numbers come from `<work>/data/report.json`, produced by `research/v3/report_data.py`). Then
+Build: `CT_WORK=<work dir> PYTHONPATH=research/v3 python3 research/v4/build_site4.py <report_url>` writes `<work>/site/`
+(evidence from `books_final.py` / `report_data4.py` outputs). Then
 `CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… npx wrangler pages deploy <work>/site --project-name confluence-terminal --branch main`
 (token and account id in `ct_secret`).
 
 ## 5. Open items
 1. **Repo still public** → Rishabh to switch to private (GitHub Settings → General → Danger zone).
 2. StockScans cookie expires **21 Oct 2026** → fresh Copy-as-cURL; update `ct_secret.stockscans_cookie`. Breadth (one gauge vote) depends on it; without it the gauge falls back to the last known breadth.
-3. `ct_ev` (v2, ~99 MB) can be truncated to free space (DB ~350 MB of 500 MB). Needs an approval prompt.
+3. **Database ~400 MB of the 500 MB free tier.** `ct_ev` (v2, ~99 MB) can be truncated (approval prompt was cancelled on 13 Oct), or move to Supabase Pro (Rishabh offered). Decide before ~470 MB.
 4. Watch-only hints (≈1 year of data, not rules): bulk/block buys ≥0.5% mcap positive; non-promoter insider selling negative; order-win filings no edge. Re-test once 2+ years exist.
 5. Don't change rules on a few weeks of live data; review the live vs simulated record each season.
 

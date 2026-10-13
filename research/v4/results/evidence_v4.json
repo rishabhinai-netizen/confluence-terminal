@@ -1,0 +1,149 @@
+{
+ "lede": "Every classic approach the data could support was run through the same machine: daily prices for about 1,900 stocks since 2018 (covering the 2020 crash and the 2022 bear market), results and concalls since 2022, and StockScans point-in-time panels since 2025. Rules were fixed on 2018\u201322 and checked on 2023\u201326. Exits are executable: no rule assumes you can trade at a close you have not yet seen.",
+ "years": [
+  "2019",
+  "2020",
+  "2021",
+  "2022",
+  "2023",
+  "2024",
+  "2025",
+  "2026"
+ ],
+ "books": [
+  {
+   "name": "Trend: 55-day breakout, stop at 50-day average",
+   "all": 0.28519033079559586,
+   "dd": -0.1874548783827743,
+   "s23": 0.2838068762790018,
+   "dd23": -0.1874548783827743,
+   "yearly": {
+    "2019": -0.03880382181609132,
+    "2020": 0.30434381594884474,
+    "2021": 1.6467962379035481,
+    "2022": -0.05883039734426365,
+    "2023": 0.3048158414102744,
+    "2024": 0.4684618943211205,
+    "2025": 0.10615612563738219,
+    "2026": 0.21174676437357376
+   }
+  },
+  {
+   "name": "Swing: 10-day breakout, exit below 10-day EMA",
+   "all": 0.2954434617569104,
+   "dd": -0.2544922788340971,
+   "s23": 0.3319516555013009,
+   "dd23": -0.23985438550569194,
+   "yearly": {
+    "2019": -0.1973391991194,
+    "2020": 1.0224187352602474,
+    "2021": 0.9717724022360432,
+    "2022": -0.09835759952845302,
+    "2023": 0.3520946038632333,
+    "2024": 0.17204389583977897,
+    "2025": 0.34571476593405603,
+    "2026": 0.3838905536898838
+   }
+  },
+  {
+   "name": "Results Leaders: top 10% of the season, 60 sessions (15 slots)",
+   "all": null,
+   "dd": null,
+   "s23": 0.3685569926615042,
+   "dd23": -0.22366850963947293,
+   "yearly": {
+    "2019": null,
+    "2020": null,
+    "2021": null,
+    "2022": null,
+    "2023": 0.7144058000975777,
+    "2024": 0.6843485064149197,
+    "2025": -0.06990126291272303,
+    "2026": 0.2172656953408294
+   }
+  },
+  {
+   "name": "All three, equal thirds",
+   "s23": 0.33342881915973965,
+   "dd23": -0.16862579618529172,
+   "all": null,
+   "dd": null,
+   "yearly": {
+    "2019": null,
+    "2020": null,
+    "2021": null,
+    "2022": null,
+    "2023": 0.45175903808262396,
+    "2024": 0.43519932645177395,
+    "2025": 0.11741221897311283,
+    "2026": 0.27292546166430887
+   },
+   "hl": true
+  },
+  {
+   "name": "Equal-weight market (benchmark)",
+   "all": 0.22688770294189453,
+   "dd": -0.5115934610366821,
+   "s23": 0.2567009925842285,
+   "dd23": -0.25161731243133545,
+   "yearly": {
+    "2019": -0.09502583742141724,
+    "2020": 0.3535715341567993,
+    "2021": 0.7280733585357666,
+    "2022": 0.13343346118927002,
+    "2023": 0.5936681032180786,
+    "2024": 0.3838857412338257,
+    "2025": -0.027194976806640625,
+    "2026": 0.10439896583557129
+   }
+  },
+  {
+   "name": "Nifty Smallcap 250 (benchmark)",
+   "all": null,
+   "dd": null,
+   "s23": 0.18008763838819442,
+   "dd23": -0.2533873694598815,
+   "yearly": {
+    "2019": null,
+    "2020": null,
+    "2021": null,
+    "2022": 0.0,
+    "2023": 0.4809545154911008,
+    "2024": 0.28001324663670735,
+    "2025": -0.06550362904459728,
+    "2026": 0.058172454341127944
+   }
+  },
+  {
+   "name": "Nifty 50 (benchmark)",
+   "all": null,
+   "dd": null,
+   "s23": 0.05724036357399931,
+   "dd23": -0.1548667918308413,
+   "yearly": {
+    "2019": null,
+    "2020": null,
+    "2021": null,
+    "2022": 0.0,
+    "2023": 0.2002783715265697,
+    "2024": 0.10461129977820116,
+    "2025": 0.09680584051073216,
+    "2026": -0.15060457184311338
+   }
+  }
+ ],
+ "worked": [
+  "Price leadership: breakouts to new highs, bought strongest-first by 6-month relative strength (Turtle/Donchian, Darvas, Minervini, O'Neil all point here). Breakout lengths of 40\u2013100 days all gave 29\u201334% a year.",
+  "Buying stocks that have already run: the more extended the breakout, the better the trade. \"Missed it\" is not a reason to skip.",
+  "The latest result rank (growth \u00d72, trend, reaction) as a season strategy, and as a factor (60-day IC 0.08).",
+  "The 3-vote market gauge: it halves the worst fall of the Trend book (\u221239% to \u221219%).",
+  "Running three books together: worst fall \u221217% since 2023, against \u221219% to \u221224% for each book alone."
+ ],
+ "failed": [
+  "Mean reversion after costs: Connors RSI-2, 3-day drops, weekly losers (\u22123% to \u22128% a year).",
+  "Pullbacks to the 20- or 50-day average in leaders, and the 4% momentum burst (negative after costs).",
+  "Valuation (low P/E, PEG), FII/DII/promoter holding changes, ROE/ROCE/margins: no edge on top of price.",
+  "Volume surge on the breakout day, guidance or results filters inside the Trend book: no improvement.",
+  "Smart-money deals and concall tone fields: about a year of history only. Kept as watch flags, not rules."
+ ]
+}

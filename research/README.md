@@ -1,3 +1,37 @@
+# Research v4 — three books, any day (13 Oct 2026)
+
+Report: Claude artifact "Confluence Terminal Research" (linked from the page). Code: `research/v4/` (needs `research/v3` on PYTHONPATH and
+`CT_WORK` pointing at a work dir with `data/`, `secrets/`). Numbers: `research/v4/results/*.json`.
+
+## Final books (10 slots each unless noted, 0.3%/side, new buys sized by the 3-vote gauge, executable exits)
+| Book | Rule | 2018–26 /yr (worst fall) | 2023–26 | 2025 | 2026 YTD |
+|---|---|---|---|---|---|
+| Trend | close > previous 55-session high close, RS126 rank; stop at previous session's 50-day avg (from day 3) | 28.5% (−18.7%) | 28.4% | +11% | +21% |
+| Swing | close > previous 10-session high close, RS126 rank; sell next close after close < EMA10, max 30 | 29.5% (−25.4%) | 33.2% | +35% | +38% |
+| Results Leaders (15 slots) | v3 rules (below) | — | 36.9% (−22.4%) | −7% | +22% |
+| All three, equal thirds | | — | **33.3% (−16.9%)** | | |
+Benchmarks 2023–26: equal-weight liquid universe 25.7% (−25.2%), Nifty Smallcap 250 18.0%, Nifty 50 5.7%.
+Replay in SQL from 1 Jan 2025 (to 12 Oct 2026): all three +42.3% vs equal-weight market +3.6%; Trend +25.6%, Swing +85.7%, Results +21.4%.
+
+## Key findings
+- Legends that work: Donchian/Turtle breakouts, any new 52-week high, ranked by 6-month relative strength. Fail after costs: Connors RSI-2,
+  3-day drops, pullbacks to 20/50-day averages, 4% momentum burst, weekly-loser reversal, tight-base / trend-template filters.
+- Robust: Trend breakout 40–100 days × stop at 40/50/70-day avg all 28–34%/yr; Swing 10–30 × EMA10/20 all 27–39%/yr.
+- Gauge: Trend without it 21.2% (−42.9%), Swing 20.8% (−57.8%).
+- Execution: same-close exits overstate (Trend 32.6% → 25.1% at next close → 28.5% with a standing stop at the 50-day average).
+- Breakout signal level (17k trades): higher RS, more extended above the 50-day avg, bigger 1-year run → better. "Already ran" is good.
+  Volume surge on breakout day: no help (2025+). Results bottom 30%: weaker, but filters inside the Trend book did not help the portfolio.
+- Factors (2025–26 month-end ICs, 60 sessions): result rank 0.076 (t 4.9), 52-week-high proximity 0.112, RS 0.052; holdings changes,
+  ROE/ROCE/margins ≈ 0. StockScans Score history is NOT point-in-time (correlates up to 0.57 with the following 20 sessions).
+- Short-history sources (≈1 year): bulk/block buys ≥0.5% mcap +2.8% median 20-day excess; non-promoter insider selling −4.3%; order wins no edge.
+  Concall tone/conviction/candor exist only for ~360 recent calls.
+
+## Engine
+`supabase/sql/200_v4_books.sql` (ct4_signals, ct4_step, ct4_advance), `210_v4_page.sql` (ct4_state, ct4_page_data, ct4_nightly), `220_v4_cron.sql`.
+Validation from 1 Jan 2025: Swing SQL 1.857 vs Python 1.862; Trend 1.256 vs 1.318 (87 of 107 research trades identical; ties on RS drift paths).
+
+---
+
 # Research v3 — Results Leaders (13 Oct 2026)
 
 Full interactive report: Claude artifact "Results Leaders Research" (linked from the page, section "Why these rules").
