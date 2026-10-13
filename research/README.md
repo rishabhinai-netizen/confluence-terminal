@@ -1,53 +1,59 @@
-# Research log — what predicts returns after Indian results (12 Oct 2026)
+# Research v3 — Results Leaders (13 Oct 2026)
 
-Data: EquiSense results (7 quarters, Q4 FY25 → Q2 FY27, ~35k), EquiSense concalls (~11k), EquiSense smart money
-(bulk/block/SAST: last 90 days; insider: longer), adjusted daily prices for 1,864 liquid NSE/BSE stocks (Jan 2025 →)
-from the Breakout Playbook feed. Scripts here are re-runnable (`CT_SCRATCH` = folder with `secrets/` and `data/`).
+Full interactive report: Claude artifact "Results Leaders Research" (linked from the page, section "Why these rules").
+Raw numbers: `research/v3/results/*.json`. Code: `research/v3/` (set `CT_WORK` to a work dir holding `data/`, `secrets/`).
 
-## Method (identical in Python `rs.py` and SQL `010_engine.sql`)
-- Entry = close of the first session strictly after the calendar day the information became public.
-- Excess return = stock return − equal-weight universe return (stocks with ≥ Rs 2 cr daily turnover), same sessions.
-- Reaction = entry close / close of the session before the announcement day.
-- Results filed > 120 days after quarter end are re-filings → excluded (3.6% of rows).
-- Rules chosen on Apr 2025–Mar 2026; checked on Apr–Oct 2026. Baseline for every rule = all events of its family.
+## 1. Data census — what can carry a strategy test
+| Source | Size / history | Verdict |
+|---|---|---|
+| EquiSense quarterly results | 77,879 filings, FY22 → Q2 FY27; ~1,600 cos/season from Oct 2022 | **Core signal** |
+| EquiSense concalls | 24,427 calls, FY22 → today | Guidance CUT = exclusion |
+| Adjusted daily closes (BP feed) | 1,874 stocks × 2,168 days from 2018 | Reaction, trend, liquidity, returns |
+| StockScans breadth | daily since 2009 | Market gauge (2 of 3 votes) |
+| StockScans index series | 62 indices weekly, 5 y | Benchmarks. **BSE 500 / Sensex have a 19-month gap** (Apr 2024 → Nov 2025) → use Nifty 50 / Smallcap 250 |
+| EquiSense smart money | 3,319 deals since Sep 2025 | Event study only |
+| EquiSense filings (orders, capex, updates) | Oct 2025 → today | Event study only |
+| StockScans PIT ratio panels | 18 holdings snapshots since Apr 2025 | Too short |
+| StockScans concall scores | 2 quarters | Too short |
+Never backtest EquiSense `ecsScore`, `marketCap`, `pe` (today's values in history).
 
-## Kept (live on the page)
-| Rule | Evidence (excess vs equal-weight market) |
-|---|---|
-| **Drift buy**: PAT YoY ≥ 25%, revenue YoY ≥ 15%, reaction ≥ +3% | 20d: 52.7% beat vs 43.0% baseline, median +0.6% vs −1.5%. 60d: 51.6% vs 42.5%. Held in all three sub-periods (A1 Apr–Sep 25, A2 Oct 25–Mar 26 falling market, B Apr–Oct 26). Edge grows with reaction size (3% → 5% → 8%: 60d median +1.4 → +2.6 → +3.9). |
-| Market gate (equal-weight index vs its 50-day average) | Drift buys in up-trends: 60d 55.8% beat, +2.6%; in down-trends 44.6%, −1.7%. |
-| Late entry | Edge unchanged for entries up to 8 sessions after the first post-result close → 10-session window. |
-| Stops | −8% stop hit in 53% of cases, mean unchanged, hit-rate falls to 41%; −12% stop hit 39%. → small size, wide stop. |
-| Avoid: missed (or PAT ≤ −10%) and fell ≥ 3% | 60d 38.6% beat, median −5.0% (baseline −2.7%); worst in up-markets (−8.2%). |
-| Avoid: balance sheet STRESSED (EquiSense) | 60d 21.8% beat, median −13.0%. |
-| Avoid: guidance CUT | 60d 33.0% beat, −5.9%. Missed own guidance: 34.9%, −8.5% (n 43, early). |
-| Red flag: same-day buy-and-sell bulk churn ≥ 0.1% of mcap | 20d 40.2% beat, −5.5% (deal data from Jul 2026 only). |
-| Red flag: insider selling by non-promoters | 20d 28.2% beat, −4.0%. |
-| In play: bulk buy or sell ≥ 0.1% of mcap | 20d 56.4% beat, +3.1% (early; Jul 2026 →). |
+## 2. Method (identical plumbing for every idea)
+Tradeable results (mcap PIT ≥ ₹1,000 cr; 20-day median turnover ≥ ₹5 cr where volume exists; filed ≤ 120 days after quarter end),
+16,097 events Oct 2022 → Oct 2026. Every rank is against the **previous season** only. Entry at the close, within 10 sessions of the
+first post-result close; 15 slots; 60-session hold; 0.3% per side; new buys sized by the 3-vote gauge. Inside each pool the order is
+random (median of 20 runs), so the league measures the idea. Window 1 Jan 2023 → 12 Oct 2026.
+Simulator fix 13 Oct: at gauge 0 no buys (earlier runs created zero-weight placeholder positions; all numbers below are post-fix).
 
-## Tested and dropped
-- **EquiSense ECS score**: identical across all past quarters for 100% of 3,097 companies → it is today's score, not
-  point-in-time. Any backtest using it (including the old v1–v8 conviction score) used future information. Display only.
-- Old build-8 conviction score: its own walk-forward showed top quartile *under*-performing bottom (−2.0% at 20d).
-- EquiSense verdict / PEAD label inside the drift set: no added edge (Fantastic/Good vs Neutral similar). Labels exist
-  for only ~14% of results before Apr 2026.
-- Guidance RAISED: no edge (50% beat at 20d, −0.2% at 60d). Promoter buying: no edge.
-- Stock momentum (3m, 6m-1m) and industry momentum: top vs bottom quintile inconsistent month to month (2025–26).
-- New concall reads (candor, tone, earnings quality, analyst sentiment): only exist from Q2 FY27 → forward tracking only.
+## 3. League table (per year / worst fall)
+| Pool | CAGR | Worst fall | 2023 | 2024 | 2025 | 2026 YTD |
+|---|---|---|---|---|---|---|
+| **Composite top 10% (model pool)** | **35.0%** | −19.8% | 69.1 | 48.9 | −6.7 | 29.0 |
+| Relative strength top 10% (6-month run) | 31.1% | −19.1% | 64.1 | 34.2 | −3.5 | 30.7 |
+| Minervini trend template + PAT ≥ 20% | 26.2% | −20.0% | 58.0 | 33.4 | −6.4 | 22.8 |
+| CAN SLIM core (PAT ≥25, rev ≥20, ≤15% off high) | 24.3% | −19.5% | 34.3 | 47.0 | −7.8 | 22.6 |
+| Biggest result-day reaction (episodic pivot) | 23.6% | −24.4% | 60.2 | 35.9 | −12.1 | 15.0 |
+| Raised guidance | 19.1% | −15.0% | 39.2 | 20.2 | −2.9 | 17.4 |
+| Any result, random (baseline) | 18.0% | −19.4% | 54.9 | 21.5 | −4.7 | 3.8 |
+| Cheapest 20% P/E | 17.0% | −22.8% | | | | |
+| Biggest EPS surprise (PEAD) | 16.6% | −23.0% | | | | |
+| Consistent compounder | 16.1% | −18.9% | | | | |
+| GARP (PEG < 1) | 14.1% | −23.2% | | | | |
+| **Guidance CUT** | **0.1%** | −26.4% | 19.6 | 2.0 | −14.1 | −3.0 |
+Benchmarks same window: equal-weight liquid universe 25.3% (−25.2%), Nifty Smallcap 250 18.0% (−25.3%), Nifty 50 5.7% (−15.5%).
+Score-ordered model path (what the live engine does): 35.2% / −22.4%. Without gauge: 45.4% / −23.3%.
 
-## Preliminary: StockScans scans (NOT yet rules)
-Membership at 6 month-ends (30 Apr – 30 Sep 2026), forward 20 sessions vs equal-weight market; all liquid stocks on the
-same dates: 40.9% beat, median −2.1%. One mostly-rising regime, and monthly members overlap, so samples are not independent.
-- Led: Early Growth & Relative Strength 57.8% / +1.6% (n 374), Index Outperformance 1Y 55.0% / +1.6%, Industry
-  Outperformance 1Y 55.4% / +1.6%, Explosive Growth 55.3% / +1.5%, Super Growth 55.5% / +1.2%, Buoyant Growth 53.3% / +1.0%.
-- No better than average or worse: Cyclone 40.5% / −2.4%, Volume Rocketing 40.3% / −2.3%, Bulk Block Deals 39.9% / −2.4%,
-  Weekly Trend Twist 34.1% / −2.8%, The Consolidators 36.6% / −3.7%, Bombed Out IPO 39.4% / −1.9%.
-- StockScans' own PEAD scan: 44.0% / −2.0% (n 50) — weaker than our drift rule.
-Next: weekly snapshots back to Apr 2025 (covers the Oct 25–Mar 26 fall), study *new entries* not membership, then decide.
-Full table: run the snippet in HANDOVER §4.1 or `data/scan_prelim_20d.csv` in the scratch folder.
+## 4. Key findings
+- Score sorts the future monotonically: decile 1 → 10 average 60-session excess −4.0% → +2.1%; beat-market share 32% → 44%.
+- Parts: growth alone 18.8% (≈ random), trend alone 25.9%, reaction alone 24.7%; combined 35.0%.
+- Gauge (random-order medians): none 43.9% / −28.1% (2025 −10.2%); **scale 35.0% / −19.8%**; skip-at-0 only 33.3% / −35.0%.
+- Hold: 20 → 10.9%, 40 → 19.9%, **60 → 32.1% (−19.5%)**, 120 → 32.1% (−16.1%); 50-day-average exit 17.6%; hold-through-next-good-result 28.7%. 60 vs 120 is a tie in this sample — first thing to revisit with more data.
+- Order inside the top 10% barely matters → treat each season as a basket.
+- Short-history hints (20-session excess, ~1 year): bulk/block buys ≥ 0.5% mcap +2.8% median, 54% beat (n 139); non-promoter insider selling −4.3% median, 29% beat (n 265); order-win filings no edge (31% beat when marked positive).
 
-## Open
-- StockScans 37 pre-built scans: point-in-time membership history being pulled (`pull_ss_scanhist.py`, month-ends first,
-  then week-ends back to Apr 2025; StockScans throttles at ~50–300 calls per window). Next: event study on scan *entries*.
-- StockScans concall result score / sentiment / congrats count: only 2 quarters exist (202606, 202609) → forward tracking.
-- StockEdge regime layer (491 scans mapped in Aug) — later.
+## 5. Validation of the live SQL engine
+Replay 1 Jan 2025 → 12 Oct 2026: engine ₹1.2135 vs Python ₹1.2005; worst fall −19.1% vs −17.5%; 75 trades each; 14/15 current holdings identical.
+Top-decile set Q1 FY26: all 120 engine picks inside the research set of 128.
+
+## 6. Caveats
+4 years, mostly rising small caps; survivorship in pre-2025 prices (set = stocks liquid today); pre-2025 liquidity rests on mcap only;
+0.3%/side costs, no impact model; buys bunch in results season (15 slots fill in 2–3 weeks).

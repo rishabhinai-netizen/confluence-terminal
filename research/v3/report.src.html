@@ -1,0 +1,287 @@
+<title>Results Leaders Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet">
+<style>
+/* Research ledger: single reading column with wide tables/charts; Confluence Terminal's bound-ledger palette, light only by the owner's standing choice */
+:root{
+  --binding:#7B1E28; --gold:#B98A2E; --gold-soft:#E7D3A6; --page:#FFFEFA; --ruled:#F8F3E6; --line:#E9DFC8; --ink:#23201B; --muted:#6E655A; --card:#FFFFFF;
+  --gain:#2E6B45; --gain-bg:#E8F2EA; --loss:#A33A2A; --loss-bg:#F8E7E2; --caution:#B97F12;
+  --c1:#7B1E28; --c2:#C27C8A; --c3:#B98A2E; --c4:#6E655A; --c5:#3F7E8C; --c6:#8DA06A;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --serif:"Literata",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:15.5px/1.6 var(--sans);font-feature-settings:"tnum" 1;padding-inline:20px;padding-block:0 60px}
+@media (max-width:640px){body{padding-inline:16px}}
+.col{max-width:1040px;margin:0 auto}
+.binding{height:10px;background:var(--binding);border-bottom:3px solid var(--gold);margin-inline:-20px}
+@media (max-width:640px){.binding{margin-inline:-16px}}
+header{padding-block:26px 18px;border-bottom:1px solid var(--line)}
+.kicker{font:600 12px var(--sans);letter-spacing:1.4px;text-transform:uppercase;color:var(--gold)}
+h1{font:700 clamp(26px,4vw,38px)/1.15 var(--serif);color:var(--binding);margin:6px 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:72ch}
+h2{font:600 23px/1.3 var(--serif);margin:42px 0 6px;text-wrap:balance}
+h3{font:600 17px/1.35 var(--serif);margin:22px 0 6px}
+p{max-width:72ch}
+.lede{color:var(--muted);margin-top:0}
+.note{font-size:13px;color:var(--muted)}
+.pos{color:var(--gain)} .neg{color:var(--loss)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:20px 0 6px}
+.kpi{border-top:3px solid var(--gold);background:var(--ruled);padding:12px 14px}
+.kpi.m{border-top-color:var(--binding)}
+.kpi b{display:block;font:600 26px/1.15 var(--serif)} .kpi span{font-size:12.5px;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--card);margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:600;color:var(--muted);background:var(--ruled);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th[data-k]{cursor:pointer} th[data-k]:hover{color:var(--binding)} th[aria-sort] ::after{content:""}
+td{padding:7px 10px;border-bottom:1px solid #F1EBDC;vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.hl td{background:#FFF6E0} tr.sep td{background:var(--ruled);color:var(--muted);font-weight:600}
+.tag{display:inline-block;font-size:11.5px;padding:0 7px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--muted);margin-left:6px;white-space:nowrap}
+.tag.g{background:var(--gain-bg);color:var(--gain);border-color:#C9DFCD} .tag.r{background:var(--loss-bg);color:var(--loss);border-color:#EBCBC2}
+.chartbox{border:1px solid var(--line);background:var(--card);padding:12px 12px 6px;margin:10px 0}
+.toggles{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.toggles button{all:unset;cursor:pointer;font-size:12.5px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;display:inline-flex;align-items:center;gap:6px;color:var(--ink);background:var(--card)}
+.toggles button i{width:14px;height:3px;display:inline-block}
+.toggles button[aria-pressed=false]{opacity:.45}
+.toggles button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+svg{width:100%;height:auto;display:block}
+svg text{font:11px var(--sans);fill:var(--muted)}
+.readout{font-size:12.5px;color:var(--muted);min-height:1.6em}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.two>*{min-width:0}
+.box{background:var(--ruled);border:1px solid var(--line);border-left:4px solid var(--gold);padding:14px 16px}
+.box.m{border-left-color:var(--binding)}
+.box h3{margin-top:0}
+ol,ul{max-width:74ch;padding-left:20px} li{margin:6px 0}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:14px;font-size:12.5px;color:var(--muted)}
+</style>
+
+<div class="binding" aria-hidden="true"></div>
+<div class="col">
+<header>
+  <div class="kicker">Confluence Terminal · strategy research · 13 Oct 2026</div>
+  <h1>Results Leaders</h1>
+  <p>What the EquiSense, StockScans and price data can and cannot support; which famous approaches survive a fair test on Indian results since October 2022; and the one rule set the terminal now runs.</p>
+</header>
+
+<section>
+  <h2>The answer in one paragraph</h2>
+  <p>Buy the companies whose quarterly result lands in the top 10% of the previous season, judged on growth first and price confirmation second, hold each for one quarter (60 sessions), and add fewer new positions when the broad market is weak. On the same plumbing, that pool returned <b id="k-cagr"></b> a year from January 2023 to October 2026, against <b id="k-base"></b> for randomly chosen results and <b id="k-ew"></b> for an equal-weight basket of every liquid stock. Its worst fall was <b id="k-dd"></b>. The edge comes from a few large winners: fewer than half of trades make money.</p>
+  <div class="kpis" id="kpis"></div>
+</section>
+
+<section>
+  <h2>1. What the data can carry</h2>
+  <p class="lede">A strategy test needs the signal recorded as it was known at the time, across several market phases. Most of the platforms' data is rich but recent, so only part of it can be tested as a strategy.</p>
+  <div class="tbl"><table id="census"></table></div>
+  <p class="note">Results are counted when filed within 120 days of quarter end (later filings are restatements). Every rank is taken against the previous season only, so no figure uses information from after the trade date.</p>
+</section>
+
+<section>
+  <h2>2. The legends, tested on identical plumbing</h2>
+  <p class="lede">Each approach defines a pool of results. Every pool then runs through the same machine: buy within 10 sessions of the result at the close, 15 slots, sell 60 sessions later, 0.3% cost each way, the same market gauge, January 2023 to 12 October 2026. Inside each pool picks are random (20 runs, median shown) so the table measures the idea itself. Click a column to sort.</p>
+  <div class="tbl"><table id="league"></table></div>
+  <div class="two">
+    <div class="box m"><h3>What wins</h3><p id="win-text"></p></div>
+    <div class="box"><h3>What does not</h3><p id="lose-text"></p></div>
+  </div>
+</section>
+
+<section>
+  <h2>3. Growth of ₹1 since January 2023</h2>
+  <p class="lede">The model path below takes the highest score first (as the live terminal does). Benchmarks are price indices; the equal-weight line is every stock that passes the liquidity filter.</p>
+  <div class="chartbox"><div class="toggles" id="tog"></div><div id="curve"></div><div class="readout" id="readout">Move over the chart to read values.</div></div>
+  <div class="tbl"><table id="bench"></table></div>
+</section>
+
+<section>
+  <h2>4. Does the score sort the future?</h2>
+  <p class="lede">All <span id="n-ev"></span> tradeable results since October 2022, split into tenths by score rank against the previous season. Bars show the average return over the next 60 sessions relative to the equal-weight market (entry at the close after the reaction day); the line marks the share that beat the market.</p>
+  <div class="chartbox"><div id="dec"></div></div>
+  <p id="dec-text"></p>
+</section>
+
+<section>
+  <h2>5. The parts and the whole</h2>
+  <p class="lede">The score blends three families. Each pool below is the top 10% on that family alone.</p>
+  <p id="parts-text"></p>
+  <div class="tbl"><table id="parts"></table></div>
+</section>
+
+<section>
+  <h2>6. Choices that shape the result</h2>
+  <div class="two">
+    <div><h3>Market gauge</h3><p class="note">Vote of three, known the evening before: equal-weight index above its 100-day average; more than half of stocks above their 50-day average; more 52-week highs than lows.</p><div class="tbl"><table id="gauge"></table></div><p id="gauge-text"></p></div>
+    <div><h3>Holding period and exits</h3><p class="note">Same pool, gauge on, random order, median of 12 runs.</p><div class="tbl"><table id="exits"></table></div><p id="exit-text"></p></div>
+  </div>
+</section>
+
+<section>
+  <h2>7. Sources too young for a strategy test</h2>
+  <p class="lede">These feeds start in late 2025, so they cover one market phase. Event studies below measure the next 20 sessions relative to the equal-weight market; they are watch-list hints, not rules.</p>
+  <div class="tbl"><table id="short"></table></div>
+</section>
+
+<section>
+  <h2>8. The live engine matches the research</h2>
+  <p id="val-text"></p>
+</section>
+
+<section>
+  <h2>9. Limits to keep in mind</h2>
+  <ul>
+    <li>Four years of usable history (October 2022 onward), mostly a rising small-cap market. 2025 was a losing year for every approach that buys stocks, the model included.</li>
+    <li>Prices before 2025 come from a set of stocks that are still liquid today, which flatters older results slightly (survivorship). The comparison between pools shares this bias, so the ranking of approaches is more reliable than the level of returns.</li>
+    <li>Costs are 0.3% each way. Before 2025 volume data is missing, so liquidity there rests on the ₹1,000 cr market-cap floor alone. Large orders in small companies would cost more.</li>
+    <li>Results season bunches the buys: the 15 slots often fill within two or three weeks and exit together a quarter later.</li>
+    <li>A 120-session hold matched the 60-session return with a smaller worst fall in this sample. The live rule stays at 60 until a longer record separates them.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>10. The rule set</h2>
+  <div class="box m"><ol>
+    <li>Universe: results filed within 120 days of quarter end; market cap at least ₹1,000 cr; median daily turnover at least ₹5 cr where volume is known.</li>
+    <li>Score each result against last season's results. Growth (revenue YoY, profit YoY, EPS change against price, margin change) counts twice; trend (distance from 200-day average, from 52-week high, 200-day slope, 6-month run against the market) once; the market's reaction to the result once.</li>
+    <li>Buy only the top 10%, at the close, within 10 sessions of the first close after the result. Skip a guidance cut on the concall or a stressed balance sheet.</li>
+    <li>15 equal slots. New buys are sized by the market gauge: none at 0/3, a third at 1/3, two thirds at 2/3, full at 3/3. The gauge never forces a sale.</li>
+    <li>Sell at the close 60 sessions after the buy. No stop-loss, no early exit.</li>
+  </ol></div>
+</section>
+<footer>Sources: EquiSense (results, concalls, filings, smart-money deals), StockScans (market breadth, index series, point-in-time panels), adjusted NSE/BSE daily closes. Research code: confluence-terminal repository, research/v3. Decision support only, not investment advice.</footer>
+</div>
+
+<script>
+"use strict";
+const R = __DATA__;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const p = (v, d = 1) => (v == null || isNaN(v) ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(d) + "%");
+const cl = (v) => (v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "");
+const num = (v) => (+v).toLocaleString("en-IN");
+const YRS = ["2023", "2024", "2025", "2026"];
+const L = R.league, find = (s) => L.find((r) => r.name.startsWith(s));
+const model = find("Composite top 10% (growth"), base = find("All tradeable"), cs = R.curve_stats;
+
+// KPIs
+$("#k-cagr").textContent = p(model.cagr); $("#k-base").textContent = p(base.cagr); $("#k-ew").textContent = p(cs["Equal-weight universe"].cagr); $("#k-dd").textContent = p(model.dd);
+$("#kpis").innerHTML = [
+  ["m", p(model.cagr), "a year, top-10% pool (20-run median)"], ["", `${p(model.cagr_p10, 0)} to ${p(model.cagr_p90, 0)}`, "range across random orderings (10th–90th pct)"],
+  ["", p(base.cagr), "a year, random results, same rules"], ["", p(cs["Nifty Smallcap 250"].cagr), "a year, Nifty Smallcap 250"], ["", p(model.dd), "worst fall of the pool"]
+].map(([c, b, s]) => `<div class="kpi ${c}"><b>${b}</b><span>${s}</span></div>`).join("");
+
+// census
+const C = R.census;
+const cen = [
+  ["Quarterly results (EquiSense)", `${num(C.results_rows)} filings`, "FY22 → Q2 FY27; ~1,600 companies a season from Oct 2022", "Core signal: growth, surprise, margins", "g", "Used"],
+  ["Concall analysis (EquiSense)", `${num(C.concall_rows)} calls`, "FY22 → today", "Guidance revision and tone", "g", "Used (guidance cut excluded)"],
+  ["Daily prices, adjusted", `${num(C.panel_isins)} stocks × ${num(C.panel_days)} days`, `from ${C.panel_from}`, "Reaction, trend, liquidity, returns", "g", "Used"],
+  ["Market breadth (StockScans)", "% above 50/200-day, 52-week highs/lows", "daily since 2009", "Market gauge", "g", "Used"],
+  ["Index series (StockScans)", "62 indices, weekly", "5 years", "Benchmarks (BSE 500 has a 19-month gap, so Nifty 50 and Smallcap 250 are used)", "", "Benchmark"],
+  ["Smart-money deals (EquiSense)", `${num(C.smart_rows)} deals`, `${R.short.range.smart[0]} → today`, "Bulk, block, insider, takeover filings", "", "Event study only"],
+  ["Corporate filings (EquiSense)", `${num(C.filings_rows.orders)} order wins, ${num(C.filings_rows.capex)} capex, ${num(C.filings_rows.updates)} updates`, `${R.short.range.orders[0]} → today`, "Order book, capex, updates", "", "Event study only"],
+  ["Point-in-time ratio panels (StockScans)", "~1,870 stocks per snapshot", `${C.ss_holdings_dates} holdings snapshots, Apr 2025 → today`, "Valuation, holdings, scores", "r", "Too short to test"],
+  ["Concall result scores (StockScans)", "sentiment tier 0–4", "2 quarters", "Management sentiment", "r", "Too short to test"],
+];
+$("#census").innerHTML = `<thead><tr><th>Source</th><th>Size</th><th>History</th><th>Carries</th><th>Verdict</th></tr></thead><tbody>${cen.map((r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="tag ${r[4]}">${r[5]}</span></td></tr>`).join("")}</tbody>`;
+
+// league (sortable)
+const LEG = L.filter((r) => !/ranked|without|Platform/.test(r.name)).map((r) => ({ ...r, tag: r === model ? "model" : r === base ? "baseline" : "" }));
+let sortK = "cagr", sortD = -1;
+function drawLeague() {
+  const rows = LEG.slice().sort((a, b) => sortD * (((sortK in a ? a[sortK] : a.yearly[sortK]) ?? -9) - ((sortK in b ? b[sortK] : b.yearly[sortK]) ?? -9)));
+  const th = (k, t, n = 1) => `<th class="${n ? "n" : ""}" data-k="${k}" aria-sort="${sortK === k ? (sortD < 0 ? "descending" : "ascending") : "none"}">${t}${sortK === k ? (sortD < 0 ? " ▾" : " ▴") : ""}</th>`;
+  $("#league").innerHTML = `<thead><tr><th>Approach</th>${th("cagr", "Per year")}${th("dd", "Worst fall")}${YRS.map((y) => th(y, y === "2026" ? "2026 YTD" : y)).join("")}${th("events", "Results in pool")}${th("hit60", "Beat market (60 sessions)")}</tr></thead><tbody>${rows.map((r) => `<tr class="${r.tag === "model" ? "hl" : ""}"><td>${esc(r.name)}${r.tag ? `<span class="tag ${r.tag === "model" ? "g" : ""}">${r.tag}</span>` : ""}</td><td class="n ${cl(r.cagr)}"><b>${p(r.cagr)}</b></td><td class="n neg">${p(r.dd)}</td>${YRS.map((y) => `<td class="n ${cl(r.yearly[y])}">${p(r.yearly[y])}</td>`).join("")}<td class="n">${num(r.events)}</td><td class="n">${(r.hit60 * 100).toFixed(0)}%</td></tr>`).join("")}</tbody>`;
+}
+$("#league").addEventListener("click", (e) => { const t = e.target.closest("th[data-k]"); if (!t) return; const k = t.dataset.k; sortD = sortK === k ? -sortD : -1; sortK = k; drawLeague(); });
+drawLeague();
+const rs = find("Relative strength"), mv = find("Trend template"), cn = find("CAN SLIM"), ep = find("Episodic"), pe = find("PEAD"), ga = find("GARP"), ch = find("Cheap"), cc = find("Consistent"), gr = find("Management raised"), gc = find("Management cut");
+$("#win-text").innerHTML = `Every approach near the top pairs earnings with price leadership: the composite (${p(model.cagr)}), six-month relative strength at the result (${p(rs.cagr)}), Minervini's trend template with earnings (${p(mv.cagr)}) and O'Neil's CAN SLIM core (${p(cn.cagr)}). The composite has the highest return of all. Like every long-only approach it lost money in 2025 (${p(model.yearly['2025'])}). Relative strength alone comes close, which is why trend carries a quarter of the score.`;
+$("#lose-text").innerHTML = `Buying cheapness lagged: Lynch-style GARP returned ${p(ga.cagr)} and the cheapest fifth by P/E ${p(ch.cagr)}, no better than random results (${p(base.cagr)}). The biggest earnings surprise alone (${p(pe.cagr)}) and steady compounders (${p(cc.cagr)}) were no better than random results either. When management cut guidance, the pool returned ${p(gc.cagr)} a year, the clearest negative signal in the data and the one hard exclusion. A raised guidance helped only modestly (${p(gr.cagr)}).`;
+
+// curves
+const COL = { "Model (top 10%, gauge)": "var(--c1)", "Model without gauge": "var(--c2)", "Any result, random picks (median of 12)": "var(--c3)", "Equal-weight universe": "var(--c4)", "Nifty Smallcap 250": "var(--c5)", "Nifty 50": "var(--c6)" };
+const ON = Object.fromEntries(Object.keys(COL).map((k) => [k, k !== "Model without gauge"]));
+const CV = R.curves;
+function drawCurve() {
+  const keys = Object.keys(COL).filter((k) => ON[k] && CV[k]);
+  const W = 900, H = 330, l = 46, r = 70, t = 12, b = 26;
+  const all = keys.flatMap((k) => CV[k]); if (!all.length) { $("#curve").innerHTML = '<p class="note">Turn on a line to draw the chart.</p>'; return; }
+  const tx = (s) => new Date(s).getTime(); const x0 = Math.min(...all.map((q) => tx(q[0]))), x1 = Math.max(...all.map((q) => tx(q[0])));
+  const lg = (v) => Math.log(v), vals = all.map((q) => q[1]); const lo = lg(Math.min(...vals) * 0.95), hi = lg(Math.max(...vals) * 1.05);
+  const X = (s) => l + ((tx(s) - x0) / (x1 - x0)) * (W - l - r), Y = (v) => t + (1 - (lg(v) - lo) / (hi - lo)) * (H - t - b);
+  const ticks = [0.8, 1, 1.25, 1.5, 2, 2.5, 3, 4].filter((v) => lg(v) > lo && lg(v) < hi);
+  const yrs = YRS.slice(1).map((y) => `${y}-01-01`);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Growth of one rupee since January 2023, log scale">`;
+  s += ticks.map((v) => `<line x1="${l}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">₹${v}</text>`).join("");
+  s += yrs.map((d) => `<line x1="${X(d)}" x2="${X(d)}" y1="${t}" y2="${H - b}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${X(d) + 4}" y="${H - 8}">${d.slice(0, 4)}</text>`).join("");
+  const labs = [];
+  for (const k of keys) {
+    const c = CV[k]; s += `<path d="${c.map((q, i) => `${i ? "L" : "M"}${X(q[0]).toFixed(1)},${Y(q[1]).toFixed(1)}`).join("")}" fill="none" stroke="${COL[k]}" stroke-width="${k.startsWith("Model (") ? 2.6 : 1.6}"/>`;
+    const e = c[c.length - 1]; labs.push({ k, x: X(e[0]) + 5, y: Y(e[1]) + 4, v: e[1] });
+  }
+  labs.sort((a, b) => a.y - b.y); for (let i = 1; i < labs.length; i++) labs[i].y = Math.max(labs[i].y, labs[i - 1].y + 13);
+  s += labs.map((q) => `<text x="${q.x}" y="${q.y}" style="fill:${COL[q.k]}">₹${q.v.toFixed(2)}</text>`).join("");
+  s += `<line id="hair" x1="0" x2="0" y1="${t}" y2="${H - b}" stroke="var(--gold)" visibility="hidden"/><rect x="${l}" y="${t}" width="${W - l - r}" height="${H - t - b}" fill="transparent" id="hit"/></svg>`;
+  $("#curve").innerHTML = s;
+  const svg = $("#curve svg"), hair = $("#hair");
+  svg.addEventListener("pointermove", (ev) => {
+    const bb = svg.getBoundingClientRect(), xv = ((ev.clientX - bb.left) / bb.width) * W; if (xv < l || xv > W - r) return;
+    const tt = x0 + ((xv - l) / (W - l - r)) * (x1 - x0); hair.setAttribute("x1", xv); hair.setAttribute("x2", xv); hair.setAttribute("visibility", "visible");
+    const parts = keys.map((k) => { const c = CV[k]; let q = c[0]; for (const z of c) { if (tx(z[0]) <= tt) q = z; else break; } return `<span style="color:${COL[k]}">■</span> ${esc(k.replace(" (median of 12)", ""))} ₹${q[1].toFixed(2)}`; });
+    $("#readout").innerHTML = `${new Date(tt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}: ${parts.join(" · ")}`;
+  });
+}
+$("#tog").innerHTML = Object.keys(COL).map((k) => `<button aria-pressed="${ON[k]}" data-k="${esc(k)}"><i style="background:${COL[k]}"></i>${esc(k)}</button>`).join("");
+$("#tog").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; ON[b.dataset.k] = !ON[b.dataset.k]; b.setAttribute("aria-pressed", ON[b.dataset.k]); drawCurve(); });
+drawCurve();
+$("#bench").innerHTML = `<thead><tr><th>Line</th><th class="n">Per year</th><th class="n">Worst fall</th>${YRS.map((y) => `<th class="n">${y === "2026" ? "2026 YTD" : y}</th>`).join("")}</tr></thead><tbody>${Object.keys(COL).filter((k) => cs[k]).map((k) => `<tr><td><span style="color:${COL[k]}">■</span> ${esc(k)}</td><td class="n ${cl(cs[k].cagr)}"><b>${p(cs[k].cagr)}</b></td><td class="n neg">${p(cs[k].dd)}</td>${YRS.map((y) => `<td class="n ${cl(cs[k].yearly[y])}">${p(cs[k].yearly[y])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+
+// deciles
+const Dd = R.deciles; $("#n-ev").textContent = num(Dd.reduce((s, d) => s + d.n, 0));
+(function () {
+  const W = 900, H = 250, l = 46, r = 46, t = 16, b = 30, bw = (W - l - r) / Dd.length;
+  const lo = Math.min(...Dd.map((d) => d.mean), 0) * 1.25, hi = Math.max(...Dd.map((d) => d.mean), 0) * 1.4 + 0.005;
+  const Y = (v) => t + (1 - (v - lo) / (hi - lo)) * (H - t - b), Yh = (h) => t + (1 - (h - 0.2) / 0.3) * (H - t - b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Average 60-session excess return by score decile">`;
+  for (let v = Math.ceil(lo * 50) / 50; v <= hi; v += 0.02) s += `<line x1="${l}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${p(v, 0)}</text>`;
+  [0.3, 0.4].forEach((h) => (s += `<text x="${W - r + 6}" y="${Yh(h) + 4}" style="fill:var(--gold)">${h * 100}%</text>`));
+  Dd.forEach((d, i) => { const x = l + i * bw + bw * 0.18, y0 = Y(0), y1 = Y(d.mean);
+    s += `<rect x="${x}" y="${Math.min(y0, y1)}" width="${bw * 0.64}" height="${Math.max(1, Math.abs(y1 - y0))}" fill="${d.mean >= 0 ? "var(--gain)" : "var(--c2)"}"><title>Decile ${d.dec}: ${p(d.mean)} average, ${(d.hit * 100).toFixed(0)}% beat the market, ${num(d.n)} results</title></rect>`;
+    s += `<text x="${x + bw * 0.32}" y="${H - 10}" text-anchor="middle">${d.dec === 10 ? "top 10%" : d.dec === 1 ? "bottom" : d.dec}</text>`; });
+  s += `<line x1="${l}" x2="${W - r}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)"/>`;
+  s += `<path d="${Dd.map((d, i) => `${i ? "L" : "M"}${l + i * bw + bw / 2},${Yh(d.hit)}`).join("")}" fill="none" stroke="var(--gold)" stroke-width="2"/>` + Dd.map((d, i) => `<circle cx="${l + i * bw + bw / 2}" cy="${Yh(d.hit)}" r="3" fill="var(--gold)"/>`).join("");
+  $("#dec").innerHTML = s + "</svg>";
+  const a = Dd[0], z = Dd[9];
+  $("#dec-text").innerHTML = `The order holds almost step by step. The bottom tenth trailed the market by ${p(a.mean)} on average over the next 60 sessions and only ${(a.hit * 100).toFixed(0)}% beat it; the top tenth beat it by ${p(z.mean)} with ${(z.hit * 100).toFixed(0)}% beating it. Most results lag an equal-weight basket because a handful of big winners lift the average, which is also why the model's median trade is about flat.`;
+})();
+
+// parts
+const parts = [...R.components, model];
+$("#parts").innerHTML = `<thead><tr><th>Pool (top 10% by…)</th><th class="n">Per year</th><th class="n">Worst fall</th>${YRS.map((y) => `<th class="n">${y === "2026" ? "2026 YTD" : y}</th>`).join("")}</tr></thead><tbody>${parts.map((r) => `<tr class="${r === model ? "hl" : ""}"><td>${esc(r === model ? "Composite: growth ×2 + trend + reaction" : r.name.replace(" (top 10%)", ""))}</td><td class="n ${cl(r.cagr)}"><b>${p(r.cagr)}</b></td><td class="n neg">${p(r.dd)}</td>${YRS.map((y) => `<td class="n ${cl(r.yearly[y])}">${p(r.yearly[y])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+
+const cg = R.components.find((c) => c.name.startsWith("Growth")), ct = R.components.find((c) => c.name.startsWith("Trend")), cr = R.components.find((c) => c.name.startsWith("Reaction"));
+$("#parts-text").innerHTML = `Growth alone (${p(cg.cagr)} a year) barely beats random results (${p(base.cagr)}): a great quarter is common and often already priced. Trend alone (${p(ct.cagr)}) and reaction alone (${p(cr.cagr)}) do better. Combined, the pool reaches ${p(model.cagr)}: the growth filter picks out which price leaders have a real business change behind them.`;
+// gauge
+const G = R.gauge.filter((g) => !g.name.startsWith("skip when gauge <="));
+const gname = (n) => n.replace(" | random order", "").replace(" | ranked", "");
+const gk = [...new Set(G.map((g) => gname(g.name)))];
+$("#gauge").innerHTML = `<thead><tr><th>New-buy rule</th><th class="n">Per year</th><th class="n">Worst fall</th><th class="n">2025</th><th class="n">Score-ordered path</th></tr></thead><tbody>${gk.map((k) => { const a = G.find((g) => g.name === k + " | random order"), b = G.find((g) => g.name === k + " | ranked"); return `<tr class="${k.startsWith("scale") ? "hl" : ""}"><td>${esc(k)}</td><td class="n"><b>${p(a.cagr)}</b></td><td class="n neg">${p(a.dd)}</td><td class="n ${cl(a.yearly["2025"])}">${p(a.yearly["2025"])}</td><td class="n">${p(b.cagr)} / ${p(b.dd)}</td></tr>`; }).join("")}</tbody>`;
+const gs = G.find((g) => g.name === "skip only when gauge = 0 | random order"), g0 = G.find((g) => g.name === "no gauge | random order"), g1 = G.find((g) => g.name.startsWith("scale") && g.name.endsWith("random order"));
+$("#gauge-text").innerHTML = `The gauge is insurance with a price. Without it the pool earned ${p(g0.cagr)} a year but fell ${p(g0.dd)} at worst and lost ${p(g0.yearly["2025"])} in 2025; with it, ${p(g1.cagr)} and ${p(g1.dd)}. Simply skipping buys at 0/3 (and buying full size otherwise) was worse on both counts: ${p(gs.cagr)} and a ${p(gs.dd)} worst fall. Scaling the size is what does the work. The gauge never sells, so it cannot stop a fall in stocks already held; it only slows new buying into a weak market.`;
+
+// exits
+const Ex = R.exits || [];
+$("#exits").innerHTML = `<thead><tr><th>Exit rule</th><th class="n">Per year</th><th class="n">Worst fall</th></tr></thead><tbody>${Ex.map((r) => `<tr class="${r.name.includes("(model)") ? "hl" : ""}"><td>${esc(r.name)}</td><td class="n ${cl(r.cagr)}"><b>${p(r.cagr)}</b></td><td class="n neg">${p(r.dd)}</td></tr>`).join("")}</tbody>`;
+const ex = (s) => Ex.find((r) => r.name.startsWith(s)) || {};
+$("#exit-text").innerHTML = `Post-result drift needs time: 20 sessions earned ${p(ex("Hold 20").cagr)} a year and 40 earned ${p(ex("Hold 40").cagr)}. Sixty and 120 sessions tied on return (${p(ex("Hold 60").cagr)} and ${p(ex("Hold 120").cagr)}); 120 had the smaller worst fall (${p(ex("Hold 120").dd)} against ${p(ex("Hold 60").dd)}). Sixty was fixed before this test and stays, since one sample cannot separate the two; it is the first candidate to revisit. Selling on a close below the 50-day average cut the return to ${p(ex("Exit on close").cagr)}: it sells winners on ordinary pullbacks. Holding on when the next result also scores well gave ${p(ex("Hold while").cagr)}.`;
+
+// short
+const S = [...R.short.orders, ...R.short.smart];
+$("#short").innerHTML = `<thead><tr><th>Event</th><th class="n">Cases</th><th class="n">Median vs market</th><th class="n">Average vs market</th><th class="n">Beat market</th></tr></thead><tbody>${S.map((r) => `<tr><td>${esc(r.name)}</td><td class="n">${num(r.n)}</td><td class="n ${cl(r.med)}">${p(r.med)}</td><td class="n ${cl(r.mean)}">${p(r.mean)}</td><td class="n">${(r.hit * 100).toFixed(0)}%</td></tr>`).join("")}</tbody>`;
+
+// validation
+const V = R.validation;
+$("#val-text").innerHTML = `The terminal's nightly SQL engine was rebuilt from these rules and replayed from ${V.window}. It ended at ₹${V.sql_end.toFixed(3)} per rupee against ₹${V.py_end.toFixed(3)} for the Python reference (worst fall ${p(V.sql_dd)} against ${p(V.py_dd)}), with ${V.same_hold} of today's 15 holdings identical. For results of the April–June 2025 quarter, every one of the engine's ${V.sql_top} top-10% picks was also in the research set of ${V.py_top}. The remaining gap comes from the engine's market index, which is built from a slightly different stock list and flips the gauge on a few borderline days.`;
+</script>

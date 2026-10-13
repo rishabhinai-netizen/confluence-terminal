@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confluence Terminal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap" rel="stylesheet">
+<style>
+/* Ledger layout: one column, the evening's decision first, then the book, the record, the reasons. Light only. */
+:root{
+  --binding:#7B1E28; --gold:#B98A2E; --gold-soft:#E7D3A6;
+  --page:#FFFEFA; --ruled:#F8F3E6; --line:#E9DFC8; --ink:#23201B; --muted:#6E655A; --card:#FFFFFF;
+  --gain:#2E6B45; --gain-bg:#E8F2EA; --loss:#A33A2A; --loss-bg:#F8E7E2; --caution:#B97F12; --caution-bg:#FBF0D6;
+  --sans:"IBM Plex Sans",system-ui,sans-serif; --serif:"Literata",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.55 var(--sans);font-feature-settings:"tnum" 1}
+a{color:var(--binding);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px}
+@media (max-width:640px){.wrap{padding-inline:16px}}
+.binding{height:10px;background:var(--binding);border-bottom:3px solid var(--gold)}
+.mast{padding-block:20px 18px;border-bottom:1px solid var(--line)}
+.mast-top{display:flex;gap:10px 16px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.brand{font:700 22px/1.2 var(--serif);color:var(--binding)}
+.brand small{font:500 13px var(--sans);color:var(--muted);margin-left:8px}
+.asof{color:var(--muted);font-size:13px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:18px 26px;align-items:center;margin-top:18px}
+@media (max-width:700px){.hero{grid-template-columns:1fr}}
+.hero h1{font:600 clamp(21px,3vw,28px)/1.3 var(--serif);margin:0;text-wrap:balance}
+.hero p{margin:6px 0 0;color:var(--muted);max-width:70ch}
+.stamp{display:inline-block;border:4px double currentColor;border-radius:6px;padding:10px 16px 8px;font:700 21px/1.05 var(--serif);letter-spacing:1.5px;text-transform:uppercase;transform:rotate(-3deg);white-space:nowrap}
+.stamp small{display:block;font:500 11px/1.3 var(--sans);letter-spacing:.3px;text-transform:none;margin-top:4px}
+.s-go{color:var(--gain)} .s-wait{color:var(--caution)} .s-stop{color:var(--loss)}
+.votes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.vote{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--card);padding:6px 10px;font-size:13px}
+.vote i{width:10px;height:10px;border-radius:50%;background:var(--loss);flex:none} .vote.on i{background:var(--gain)}
+.vote b{font-weight:600}
+.strip{display:flex;gap:1px;height:18px;margin-top:12px;max-width:640px}
+.strip span{flex:1;min-width:0}
+.strip-l{display:flex;justify-content:space-between;max-width:640px;font-size:11.5px;color:var(--muted)}
+nav{position:sticky;top:0;z-index:5;background:var(--page);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav a{padding:11px 13px 9px;font:500 14px var(--sans);color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;text-decoration:none}
+nav a:hover{color:var(--binding);border-bottom-color:var(--gold-soft)}
+main{padding-block:10px 70px}
+section{padding-top:26px;scroll-margin-top:50px}
+h2{font:600 21px/1.3 var(--serif);margin:0 0 4px;text-wrap:balance}
+h3{font:600 16px/1.35 var(--serif);margin:0 0 6px}
+.lede{color:var(--muted);margin:0 0 14px;max-width:74ch}
+.note{font-size:12.5px;color:var(--muted)}
+.pos{color:var(--gain)} .neg{color:var(--loss)} .warn{color:var(--caution)}
+.chip{display:inline-block;font-size:12px;line-height:1.5;padding:1px 8px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.chip.g{background:var(--gain-bg);border-color:#C9DFCD;color:var(--gain)} .chip.r{background:var(--loss-bg);border-color:#EBCBC2;color:var(--loss)} .chip.a{background:var(--caution-bg);border-color:#EEDBA9;color:#8C5F08}
+.panel{background:var(--ruled);border:1px solid var(--line);border-left:4px solid var(--gold);padding:14px 16px}
+.panel.m{border-left-color:var(--binding)}
+.grid2{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.grid2>*{min-width:0}
+.kv{display:flex;flex-wrap:wrap;gap:10px 26px}
+.kv div{min-width:90px} .kv b{display:block;font:600 19px/1.2 var(--sans)} .kv span{font-size:12px;color:var(--muted)}
+.order{display:grid;grid-template-columns:auto 1fr auto;gap:4px 16px;align-items:start;border-top:2px solid var(--binding);padding:12px 0}
+.order + .order{border-top:1px solid var(--line)}
+.order .act{font:700 13px var(--sans);letter-spacing:1px;padding:3px 8px;border:2px solid currentColor;border-radius:4px}
+.order .nm{font:600 18px/1.25 var(--serif)} .order .sub{font-size:13px;color:var(--muted)}
+.bars{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.bar{display:inline-flex;align-items:center;gap:6px}
+.bar u{display:inline-block;width:64px;height:7px;background:var(--line);position:relative;text-decoration:none}
+.bar u::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--gold)}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:600;color:var(--muted);background:var(--ruled);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #F1EBDC;vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.hl td{background:#FFF8E6}
+td .s{font:600 14px var(--serif);color:var(--binding)} td .x{display:block;font-size:12px;color:var(--muted);max-width:30ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:14px 16px;border:1px dashed var(--line);color:var(--muted);background:var(--card)}
+details{margin-top:12px} summary{cursor:pointer;color:var(--binding);font-weight:500;font-size:14px}
+svg.chart{width:100%;height:auto;display:block}
+svg text{font:11px var(--sans);fill:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:6px 0}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+ol.rules{margin:6px 0 0;padding-left:20px;max-width:80ch} ol.rules li{margin:6px 0}
+input[type=search]{font:15px var(--sans);padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--gold);width:min(520px,100%);background:var(--card);color:var(--ink)}
+.hits{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.hits button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border:1px solid var(--line);background:var(--card)}
+.hits button:hover{border-color:var(--gold)}
+.card{margin-top:12px}
+.verdict{font:600 17px/1.3 var(--serif);margin:2px 0 8px}
+footer{border-top:1px solid var(--line);padding-block:18px 40px;color:var(--muted);font-size:12.5px}
+.hide-m{}
+@media (max-width:640px){.hide-m{display:none}}
+.err{padding:14px;border:1px solid #EBCBC2;background:var(--loss-bg);color:var(--loss)}
+</style>
+</head>
+<body>
+<div class="binding" aria-hidden="true"></div>
+<header class="wrap mast">
+  <div class="mast-top"><div class="brand">Confluence Terminal<small>Results Leaders model</small></div><div class="asof" id="asof">Loading…</div></div>
+  <div class="hero" id="hero"></div>
+</header>
+<nav aria-label="Sections"><div class="wrap">
+  <a href="#orders">Orders</a><a href="#book">Portfolio</a><a href="#window">Buy window</a><a href="#record">Track record</a><a href="#why">Why these rules</a><a href="#lookup">Look up a stock</a>
+</div></nav>
+<main class="wrap" id="main"><div class="empty" style="margin-top:24px">Loading tonight's book…</div></main>
+<footer class="wrap">Private research tool. Decision support only, not investment advice. Data: EquiSense results and concalls, StockScans market breadth, adjusted NSE/BSE closing prices. The model is recomputed every night from raw data; simulated history uses the same code as the live record.</footer>
+
+<script>
+"use strict";
+const EVIDENCE = __EVIDENCE__;
+const REPORT_URL = "__REPORT_URL__";
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (v, d = 0) => (v == null || isNaN(v) ? "—" : (+v).toLocaleString("en-IN", { minimumFractionDigits: d, maximumFractionDigits: d }));
+const sg = (v, d = 1) => (v == null || isNaN(v) ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(+v).toFixed(d) + "%");
+const cl = (v) => (v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "");
+const dt = (s, y) => { if (!s) return "—"; const d = new Date(s + (String(s).length === 10 ? "T00:00:00" : "")); return isNaN(d) ? esc(s) : d.toLocaleDateString("en-IN", y ? { day: "numeric", month: "short", year: "numeric" } : { day: "numeric", month: "short" }); };
+const tv = (sym) => `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(/^\d+$/.test(sym) ? "BSE:" + sym : "NSE:" + sym)}`;
+const qlabel = (qn) => { const fy = Math.floor((qn - 1) / 4), q = qn - fy * 4; return `Q${q} FY${String(fy).slice(2)}`; };
+const SLOTS = 15;
+const frac = (w) => (w >= 0.99 ? "full slot" : w >= 0.66 ? "⅔ slot" : w >= 0.33 ? "⅓ slot" : "—");
+// trading-day arithmetic for estimates (weekends skipped; exchange holidays are not, hence "about")
+function addSessions(s, k) { const d = new Date(s + "T00:00:00"); let n = 0; while (n < k) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) n++; } return d.toISOString().slice(0, 10); }
+const bar = (lab, v) => `<span class="bar">${lab}<u style="--w:${Math.round((v ?? 0) * 100)}%"></u>${v == null ? "—" : Math.round(v * 100)}</span>`;
+const stockCell = (sym, name) => `<a class="s" href="${tv(sym)}" target="_blank" rel="noopener">${esc(sym)}</a><span class="x" title="${esc(name)}">${esc(name)}</span>`;
+let D;
+
+function gaugeWords(g) {
+  const k = Math.round(g * 3);
+  return [
+    { stamp: "Stand aside", cls: "s-stop", size: "No new buys", why: "All three market signals are negative." },
+    { stamp: "Cautious", cls: "s-wait", size: "New buys at ⅓ size", why: "One of three market signals is positive." },
+    { stamp: "Buy", cls: "s-go", size: "New buys at ⅔ size", why: "Two of three market signals are positive." },
+    { stamp: "Buy", cls: "s-go", size: "New buys at full size", why: "All three market signals are positive." },
+  ][k];
+}
+
+function headline() {
+  const g = D.gauge.v, held = D.holdings.length, free = SLOTS - held + D.sells.length, nb = D.buys.length;
+  const nextExit = D.holdings.reduce((m, h) => Math.min(m, h.left), 99);
+  if (nb) return `${nb} buy order${nb > 1 ? "s" : ""} for tomorrow's close${D.sells.length ? `, ${D.sells.length} sell${D.sells.length > 1 ? "s" : ""}` : ""}.`;
+  if (D.sells.length) return `${D.sells.length} position${D.sells.length > 1 ? "s" : ""} to sell at tomorrow's close. No new buys.`;
+  if (g === 0) return "No orders tonight. The market gauge is at zero, so the model is not adding positions.";
+  if (free <= 0) return `No orders tonight. All ${SLOTS} slots are full; the first frees in ${nextExit} session${nextExit === 1 ? "" : "s"} (about ${dt(addSessions(D.asof, nextExit + 1))}).`;
+  return "No orders tonight. No fresh result clears the top-10% bar inside its buy window.";
+}
+
+function renderHero() {
+  const g = D.gauge, w = gaugeWords(g.v), v = Object.fromEntries(g.votes.map((x) => [x.k, x]));
+  const hist = g.hist.slice(-250);
+  const col = ["var(--loss)", "#D9A441", "#8DB596", "var(--gain)"];
+  $("#asof").innerHTML = `Data to the close of ${dt(D.asof, 1)} · built ${new Date(D.built_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
+  $("#hero").innerHTML = `
+    <div><span class="stamp ${w.cls}">${w.stamp}<small>${w.size} · gauge ${Math.round(g.v * 3)}/3</small></span></div>
+    <div>
+      <h1>${esc(headline())}</h1>
+      <p>${w.why} The gauge only sizes new buys; open positions always run their 60 sessions.</p>
+      <div class="votes">
+        <span class="vote ${v.trend.on ? "on" : ""}"><i></i>Equal-weight market vs its 100-day average: <b>${sg(v.trend.val, 2)}</b></span>
+        <span class="vote ${v.breadth.on ? "on" : ""}"><i></i>Stocks above 50-day average: <b>${num(v.breadth.val, 1)}%</b> (needs 50)</span>
+        <span class="vote ${v.highs.on ? "on" : ""}"><i></i>52-week highs vs lows: <b>${num(v.highs.hi, 1)}% vs ${num(v.highs.lo, 1)}%</b></span>
+      </div>
+      <div class="strip" role="img" aria-label="Market gauge, last 250 sessions">${hist.map((h) => `<span style="background:${col[h[1]]}" title="${dt(h[0], 1)}: ${h[1]}/3"></span>`).join("")}</div>
+      <div class="strip-l"><span>${dt(hist[0][0], 1)}</span><span>gauge 0 <b style="color:var(--loss)">■</b> 1 <b style="color:#D9A441">■</b> 2 <b style="color:#8DB596">■</b> 3 <b style="color:var(--gain)">■</b></span><span>${dt(hist[hist.length - 1][0], 1)}</span></div>
+    </div>`;
+}
+
+function ordersHTML() {
+  const buys = D.buys.map((b) => `
+    <div class="order"><span class="act pos">BUY</span>
+      <div><div class="nm"><a href="${tv(b.sym)}" target="_blank" rel="noopener">${esc(b.sym)}</a> <span class="sub">${esc(b.name)} · ${esc(b.sector || "")}</span></div>
+        <div class="sub">Result ${dt(b.pub)}: revenue ${sg(b.rev)}, profit ${sg(b.pat)}, stock ${sg(b.rx)} vs market on the result. Top ${Math.max(1, Math.round((1 - b.pr) * 100))}% of last season.</div>
+        <div class="bars">${bar("Growth", b.gg)}${bar("Trend", b.gt)}${bar("Reaction", b.gr)}</div></div>
+      <div class="n"><b>${frac(b.w)}</b><div class="sub">${num((b.w / SLOTS) * 100, 1)}% of capital · last ₹${num(b.c, 2)}</div><div class="sub">window: ${b.left} more session${b.left === 1 ? "" : "s"}</div></div></div>`).join("");
+  const sells = D.sells.map((s) => `
+    <div class="order"><span class="act neg">SELL</span>
+      <div><div class="nm"><a href="${tv(s.sym)}" target="_blank" rel="noopener">${esc(s.sym)}</a> <span class="sub">${esc(s.name)}</span></div>
+        <div class="sub">Bought ${dt(s.entry_d)} at ₹${num(s.entry_c, 2)}. 60 sessions are up.</div></div>
+      <div class="n"><b class="${cl(s.ret)}">${sg(s.ret)}</b><div class="sub">last ₹${num(s.c, 2)}</div></div></div>`).join("");
+  return `<section id="orders"><h2>Orders for tomorrow's close</h2>
+    <p class="lede">Decided on tonight's data; the model trades at the next session's close. Buys are the highest-scoring qualifying results that fit the free slots.</p>
+    ${buys || sells ? buys + sells : `<div class="empty">${esc(headline())}</div>`}</section>`;
+}
+
+function bookHTML() {
+  const H = D.holdings, inv = H.reduce((s, h) => s + h.w, 0) / SLOTS, avg = H.length ? H.reduce((s, h) => s + h.ret, 0) / H.length : null;
+  const rows = H.slice().sort((a, b) => a.left - b.left || b.ret - a.ret).map((h) => `<tr${D.sells.some((s) => s.isin === h.isin) ? ' class="hl"' : ""}>
+      <td>${stockCell(h.sym, h.name)}</td><td class="hide-m">${esc(h.sector || "—")}</td><td class="n">${dt(h.entry_d)}</td><td class="n">₹${num(h.entry_c, 2)}</td><td class="n">₹${num(h.c, 2)}</td>
+      <td class="n ${cl(h.ret)}"><b>${sg(h.ret)}</b></td><td class="n">${frac(h.w)}</td><td class="n">${h.left ? `${h.left} · ${dt(addSessions(D.asof, h.left + 1))}` : "tomorrow"}</td></tr>`).join("");
+  return `<section id="book"><h2>Model portfolio</h2>
+    <p class="lede">${H.length} of ${SLOTS} slots filled, ${num(inv * 100, 0)}% of capital invested. One slot is 1/${SLOTS} of capital (6.7%). Each position is sold at the close 60 sessions after purchase, with no stop-loss.</p>
+    ${H.length ? `<div class="tbl"><table><thead><tr><th>Stock</th><th class="hide-m">Sector</th><th class="n">Bought</th><th class="n">Price paid</th><th class="n">Last</th><th class="n">P&amp;L</th><th class="n">Size</th><th class="n">Exit in (sessions · about)</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note">Average open position ${sg(avg)} before costs. Exit dates skip weekends but not exchange holidays.</p>` : `<div class="empty">No open positions.</div>`}</section>`;
+}
+
+function windowHTML() {
+  const W = D.window, S = D.season;
+  const st = (s) => s === "buy" ? '<span class="chip g">buy order</span>' : s === "held" ? '<span class="chip">already held</span>' : s.startsWith("excluded") ? `<span class="chip r">${esc(s)}</span>` : `<span class="chip a">${esc(s)}</span>`;
+  const rows = W.map((w) => `<tr><td>${stockCell(w.sym, w.name)}</td><td class="n">${dt(w.pub)}</td><td class="n">${sg(w.rev)}</td><td class="n">${sg(w.pat)}</td><td class="n ${cl(w.rx)}">${sg(w.rx)}</td>
+      <td class="n">top ${Math.max(1, Math.round((1 - w.pr) * 100))}%</td><td class="n">${w.left}</td><td>${st(w.status)}</td></tr>`).join("");
+  return `<section id="window"><h2>Results inside the buy window</h2>
+    <p class="lede">Every result from the last 10 sessions that ranks in the top 10% against last season's results. ${S.results ? `${qlabel(S.qn)} season so far: ${num(S.results)} results scored, ${num(S.qualified)} qualified.` : ""}</p>
+    ${W.length ? `<div class="tbl"><table><thead><tr><th>Stock</th><th class="n">Result</th><th class="n">Revenue YoY</th><th class="n">Profit YoY</th><th class="n">Reaction</th><th class="n">Rank</th><th class="n">Window left</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>`
+      : `<div class="empty">Nothing qualifies inside the window right now.</div>`}</section>`;
+}
+
+function chartSVG(curve, live) {
+  const Wd = 900, Ht = 280, L = 44, R = 64, T = 12, B = 26;
+  const xs = curve.map((c) => new Date(c[0]).getTime()), ys = curve.flatMap((c) => [c[1], c[2]]);
+  const x0 = xs[0], x1 = xs[xs.length - 1], lo = Math.min(...ys) * 0.97, hi = Math.max(...ys) * 1.03;
+  const X = (t) => L + ((t - x0) / (x1 - x0)) * (Wd - L - R), Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (Ht - T - B);
+  const path = (k) => curve.map((c, i) => `${i ? "L" : "M"}${X(xs[i]).toFixed(1)},${Y(c[k]).toFixed(1)}`).join("");
+  const ticks = []; for (let v = Math.ceil(lo * 10) / 10; v <= hi; v += 0.1) ticks.push(v);
+  const yrs = []; for (let y = new Date(x0).getFullYear() + 1; y <= new Date(x1).getFullYear(); y++) yrs.push(new Date(`${y}-01-01`).getTime());
+  const lx = X(new Date(live).getTime()), last = curve[curve.length - 1];
+  return `<svg class="chart" viewBox="0 0 ${Wd} ${Ht}" role="img" aria-label="Model equity versus the equal-weight market">
+    ${ticks.map((v) => `<line x1="${L}" x2="${Wd - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${(v - 1 >= 0 ? "+" : "−") + Math.abs(Math.round((v - 1) * 100))}%</text>`).join("")}
+    ${yrs.map((t) => `<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${Ht - B}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${X(t) + 4}" y="${Ht - 8}">${new Date(t).getFullYear()}</text>`).join("")}
+    <rect x="${lx}" y="${T}" width="${Math.max(0, Wd - R - lx)}" height="${Ht - T - B}" fill="var(--gain-bg)" opacity=".7"/>
+    <text x="${Math.min(lx + 4, Wd - R - 30)}" y="${T + 12}" fill="var(--gain)">live</text>
+    <path d="${path(2)}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+    <path d="${path(1)}" fill="none" stroke="var(--binding)" stroke-width="2.2"/>
+    <circle cx="${X(xs[xs.length - 1])}" cy="${Y(last[1])}" r="3.5" fill="var(--binding)"/>
+    <text x="${X(xs[xs.length - 1]) + 6}" y="${Y(last[1]) + 4}" fill="var(--binding)">${sg((last[1] - 1) * 100, 1)}</text>
+    <text x="${X(xs[xs.length - 1]) + 6}" y="${Y(last[2]) + 4}">${sg((last[2] - 1) * 100, 1)}</text>
+  </svg>`;
+}
+
+function recordHTML() {
+  const R = D.record, c = R.curve, t = R.trades, last = c[c.length - 1];
+  let pk = 0, dd = 0, ipk = 0, idd = 0; for (const p of c) { pk = Math.max(pk, p[1]); dd = Math.min(dd, p[1] / pk - 1); ipk = Math.max(ipk, p[2]); idd = Math.min(idd, p[2] / ipk - 1); }
+  const closed = R.closed.map((x) => `<tr><td><span class="s">${esc(x.sym)}</span><span class="x">${esc(x.name)}</span></td><td class="n">${dt(x.entry_d, 1)}</td><td class="n">${dt(x.exit_d, 1)}</td><td class="n">${frac(x.w)}</td><td class="n ${cl(x.ret)}"><b>${sg(x.ret)}</b></td></tr>`).join("");
+  return `<section id="record"><h2>Track record</h2>
+    <p class="lede">From ${dt(c[0][0], 1)} the model has run day by day on the rules below, with 0.3% cost each way. Before ${dt(D.live_from, 1)} the record is simulated by the same code that now runs live; the shaded part is live.</p>
+    <div class="kv"><div><b class="${cl(last[1] - 1)}">${sg((last[1] - 1) * 100)}</b><span>model</span></div><div><b class="${cl(last[2] - 1)}">${sg((last[2] - 1) * 100)}</b><span>equal-weight market</span></div>
+      <div><b class="neg">${sg(dd * 100)}</b><span>model worst fall</span></div><div><b class="neg">${sg(idd * 100)}</b><span>market worst fall</span></div>
+      <div><b>${num(t.n)}</b><span>closed trades</span></div><div><b>${num(t.hit * 100, 0)}%</b><span>winners</span></div><div><b class="${cl(t.avg)}">${sg(t.avg, 1)}</b><span>average trade</span></div></div>
+    <div class="legend"><span><i style="background:var(--binding)"></i>Model portfolio</span><span><i style="background:var(--muted)"></i>Equal-weight market (liquid stocks)</span></div>
+    ${chartSVG(c, D.live_from)}
+    <p class="note">Winners are under half, and the median trade is about flat: the money comes from a minority of big winners (best ${sg(t.best, 0)}, worst ${sg(t.worst, 0)}). Expect long flat stretches.</p>
+    <details><summary>Last ${R.closed.length} closed trades</summary><div class="tbl" style="margin-top:8px"><table><thead><tr><th>Stock</th><th class="n">Bought</th><th class="n">Sold</th><th class="n">Size</th><th class="n">Return after costs</th></tr></thead><tbody>${closed}</tbody></table></div></details></section>`;
+}
+
+function whyHTML() {
+  const E = EVIDENCE, p = (v) => sg(v * 100, 1);
+  const rows = E.league.map((r) => `<tr${r.model ? ' class="hl"' : ""}><td>${esc(r.name)}</td><td class="n ${cl(r.cagr)}"><b>${p(r.cagr)}</b></td><td class="n neg">${p(r.dd)}</td>${E.years.map((y) => `<td class="n ${cl(r.yearly[y])}">${p(r.yearly[y])}</td>`).join("")}</tr>`).join("");
+  const bench = E.bench.map((r) => `<tr><td>${esc(r.name)}</td><td class="n ${cl(r.cagr)}"><b>${p(r.cagr)}</b></td><td class="n neg">${p(r.dd)}</td>${E.years.map((y) => `<td class="n ${cl(r.yearly[y])}">${r.yearly[y] == null ? "—" : p(r.yearly[y])}</td>`).join("")}</tr>`).join("");
+  return `<section id="why"><h2>Why these rules</h2>
+    <p class="lede">Every classic approach we could build from this data was run through identical plumbing: the same ${num(E.events)} tradeable results since ${E.from}, 15 slots, 60-session holds, 0.3% cost each way and the same market gauge. Picks inside each pool are random (median of 20 runs), so the table measures the idea, not lucky ordering.</p>
+    <div class="tbl"><table><thead><tr><th>Approach (2023 → ${E.to})</th><th class="n">Yearly return</th><th class="n">Worst fall</th>${E.years.map((y) => `<th class="n">${y}${y === E.years[E.years.length - 1] ? " YTD" : ""}</th>`).join("")}</tr></thead>
+    <tbody>${rows}<tr><td colspan="${3 + E.years.length}" style="background:var(--ruled);font-weight:600;color:var(--muted)">Benchmarks</td></tr>${bench}</tbody></table></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel m"><h3>The rules</h3><ol class="rules">
+        <li>Score every result against last season's results: growth (revenue, profit, EPS surprise vs price, margin change) counts double; trend (200-day average, 52-week high, 6-month strength) and the market's reaction count once.</li>
+        <li>Buy only the top 10%, within 10 sessions of the result, at the close.</li>
+        <li>Skip a guidance cut or a stressed balance sheet.</li>
+        <li>15 equal slots; new buys sized by the market gauge (0, ⅓, ⅔ or full).</li>
+        <li>Sell at the close 60 sessions later. No stop-loss, no early exit.</li></ol></div>
+      <div class="panel"><h3>What the tests say</h3><ol class="rules">
+        ${E.notes.map((n) => `<li>${n}</li>`).join("")}</ol>
+        ${REPORT_URL.startsWith("http") ? `<p style="margin:10px 0 0"><a href="${REPORT_URL}" target="_blank" rel="noopener">Full research report →</a></p>` : ""}</div>
+    </div></section>`;
+}
+
+function lookupHTML() {
+  return `<section id="lookup"><h2>Look up a stock</h2>
+    <p class="lede">Where any company's latest result stands against the bar, and why it does or does not qualify.</p>
+    <input type="search" id="q" placeholder="Symbol or company name" autocomplete="off" aria-label="Symbol or company name">
+    <div class="hits" id="hits"></div><div id="card" class="card"></div></section>`;
+}
+
+function card(r) {
+  const [isin, sym, name, sector, pub, score, pr, gg, gt, gr, rev, pat, rx, trd, excl, qn, left] = r;
+  const held = D.holdings.find((h) => h.isin === isin);
+  let v, c;
+  if (held) { v = `In the model portfolio since ${dt(held.entry_d, 1)} (${sg(held.ret)}).`; c = "pos"; }
+  else if (pr >= 0.9 && trd && !excl && left >= 1) { v = `Qualifies. Buy window open for ${left} more session${left === 1 ? "" : "s"}.`; c = "pos"; }
+  else if (pr >= 0.9 && trd && !excl) { v = "Qualified, but its 10-session buy window has closed."; c = "warn"; }
+  else if (excl) { v = `Excluded: ${excl}.`; c = "neg"; }
+  else if (!trd) { v = "Too small or illiquid for the model (needs ₹1,000 cr market cap and ₹5 cr daily turnover)."; c = "warn"; }
+  else { v = `Does not qualify: ranks top ${Math.round((1 - pr) * 100)}% and needs top 10%.`; c = "neg"; }
+  return `<div class="panel"><div class="nm" style="font:600 19px var(--serif)"><a href="${tv(sym)}" target="_blank" rel="noopener">${esc(sym)}</a> <span class="note">${esc(name)} · ${esc(sector || "")}</span></div>
+    <div class="verdict ${c}">${esc(v)}</div>
+    <div class="kv"><div><b>${dt(pub, 1)}</b><span>${qlabel(qn)} result</span></div><div><b class="${cl(rev)}">${sg(rev)}</b><span>revenue YoY</span></div><div><b class="${cl(pat)}">${sg(pat)}</b><span>profit YoY</span></div>
+      <div><b class="${cl(rx)}">${sg(rx)}</b><span>reaction vs market</span></div><div><b>${pr == null ? "—" : "top " + Math.max(1, Math.round((1 - pr) * 100)) + "%"}</b><span>rank vs last season</span></div></div>
+    <div class="bars" style="margin-top:10px">${bar("Growth", gg)}${bar("Trend", gt)}${bar("Reaction", gr)}<span>score ${num(score, 3)}</span></div>
+    <p class="note" style="margin:8px 0 0">Bars are percentiles against last season's results (100 = best). The score weights growth twice.</p></div>`;
+}
+
+function wireLookup() {
+  const L = D.lookup, q = $("#q"), hits = $("#hits"), out = $("#card");
+  const show = (r) => { out.innerHTML = card(r); hits.innerHTML = ""; };
+  q.addEventListener("input", () => {
+    const s = q.value.trim().toLowerCase(); out.innerHTML = "";
+    if (s.length < 2) { hits.innerHTML = ""; return; }
+    const m = L.filter((r) => (r[1] || "").toLowerCase().startsWith(s) || (r[2] || "").toLowerCase().includes(s)).sort((a, b) => ((a[1] || "").toLowerCase() === s ? -1 : 0) - ((b[1] || "").toLowerCase() === s ? -1 : 0)).slice(0, 12);
+    hits.innerHTML = m.length ? m.map((r, i) => `<button data-i="${L.indexOf(r)}">${esc(r[1])} · ${esc((r[2] || "").slice(0, 28))}</button>`).join("") : '<span class="note">No scored result in the last 200 days for that name.</span>';
+    if (m.length === 1) show(m[0]);
+  });
+  hits.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) show(L[+b.dataset.i]); });
+  const ex = L.find((r) => r[1] === (D.holdings[0] || {}).sym) || L[0]; if (ex) { q.value = ex[1]; out.innerHTML = card(ex); }
+}
+
+async function boot() {
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" });
+    if (!r.ok) throw new Error(`The data request failed (${r.status}). Reload in a minute; if it persists, the nightly build may not have run.`);
+    D = await r.json();
+    renderHero();
+    $("#main").innerHTML = ordersHTML() + bookHTML() + windowHTML() + recordHTML() + whyHTML() + lookupHTML();
+    wireLookup();
+  } catch (e) {
+    $("#main").innerHTML = `<div class="err" style="margin-top:24px">${esc(e.message || e)}</div>`;
+  }
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,48 +1,57 @@
-# Confluence Terminal v2 — HANDOVER (read first in a new chat)
+# Confluence Terminal v3 — HANDOVER (read first in a new chat)
 
-Written 12 Oct 2026 (v2 go-live). Owner: Rishabh. Keep separate from Breakout Playbook (own chat, own Supabase project).
+Written 13 Oct 2026 (v3 go-live: "Results Leaders" model). Owner: Rishabh. Keep separate from Breakout Playbook (own chat, own Supabase project).
 
 ## Starter message
-> Continue my Confluence Terminal v2. Read `HANDOVER.md` and `research/README.md` in my private repo
+> Continue my Confluence Terminal v3. Read `HANDOVER.md` and `research/README.md` in my private repo
 > `rishabhinai-netizen/confluence-terminal` (attach with add_repo, then clone) and memory `/areas/confluence-terminal.md`.
 
-## 1. Where everything is
+## 1. What it is now
+One strategy, run as a 15-slot model portfolio, recomputed every night:
+- Score every quarterly result against the **previous season's** results: growth ×2 (revenue YoY, PAT YoY, EPS change vs price, OPM change) + trend (vs 200-day avg, vs 52-week high, 200-day slope, 6-month excess run) + market reaction.
+- Buy the top 10% (pr ≥ 0.90) within 10 sessions of the first post-result close, at the close; skip guidance CUT and balance sheet STRESSED; universe mcap ≥ ₹1,000 cr, turnover ≥ ₹5 cr.
+- 15 slots; new-buy size = market gauge (vote of 3: EW index > 100-day avg, % stocks > 50-day > 50, 52w highs > lows). Gauge never forces sales.
+- Sell at the close 60 sessions later. No stops.
+Evidence: `research/README.md` (v3) and the research report artifact (link in the page's "Why these rules").
+
+## 2. Where everything is
 | Thing | Where |
 |---|---|
-| Page | https://confluence-terminal.pages.dev — Cloudflare Pages project `confluence-terminal`, Access app "Confluence Terminal" (id bff0ff80-78be-446c-8039-c49a1486c7d4), policy: email rishabhinai@gmail.com, session 30 days |
-| Database | Supabase `confluence-terminal`, id **ybdqdpwfhgngggaomvqq** (free plan, ap-south-1) |
-| Secrets | table `ct_secret` (RLS, no policies): stockscans_cookie, equisense_cookie, bp_anon_key, bp_feed_key, page_key, ingest_key, ct_anon_key, cloudflare_api_token/account_id, github_token. Read via SQL; never paste into repo/memory |
-| Prices | read-only from Breakout Playbook: BP functions `ct_feed_meta_lite`, `ct_feed_prices`, `ct_feed_prices_isins` (+ unused `ct_feed_meta`), gated by `bp_secret.ct_feed_key`. These are the only CT objects inside BP |
-| Code | this repo (`supabase/`, `web/`, `research/`); v1–v8 in `legacy/` |
-| Old public page | rishabhinai-netizen.github.io/confluence-terminal now shows a "no longer public" notice (12 Oct). **Repo is still public — Rishabh to switch it to private** (Settings → General → Danger zone → Change visibility); the session proxy cannot change repo settings |
+| Page | https://confluence-terminal.pages.dev — Cloudflare Pages project `confluence-terminal`, Access app "Confluence Terminal" (id bff0ff80-78be-446c-8039-c49a1486c7d4), email rishabhinai@gmail.com |
+| Database | Supabase `confluence-terminal`, id **ybdqdpwfhgngggaomvqq** |
+| Secrets | table `ct_secret` (RLS, no policies). Read via SQL; never paste into repo/memory |
+| Prices | read-only from Breakout Playbook feed functions (`ct_feed_*`, gated by `bp_secret.ct_feed_key`) → `ct_prices` (2024-01 onward in CT) |
+| Code | `supabase/sql/100_v3_engine.sql`, `110_v3_page.sql`, `120_v3_cron.sql`; `web/index.src.html` (+ `_worker.js`); `research/v3/` |
+| v2 | page archived at `legacy/web_v2/index.html`; v2 SQL (000–050) still installed, its builds unscheduled |
 
-## 2. Nightly flow (pg_cron in CT; times IST)
-21:05 EquiSense job (results + concalls of live season, 7-day smart money, catalysts) → 21:20 prices from BP (retries
-to 23:20) → 22:50 build → 23:05 StockScans job (resumes every 10 min through rate limits) → 23:35 EquiSense late pass →
-00:20 build → 08:05 EquiSense + 08:30 StockScans morning passes → 10:15 build. `ct_nightly()` = market index → events →
-late-filing filter → stats → log picks → page JSON into `ct_page('data')`. Each step logs to `ct_runs`.
+## 3. Nightly flow (IST)
+21:05 EquiSense job → 21:20 prices (retries to 23:20) → 23:05 StockScans (breadth etc., resumes every 10 min) →
+**23:40 `ct_v3_nightly()`** (+ 00:40 and 09:00 catch-ups). Steps: concall guidance sync → `ct_v3_market()` (EW index,
+SMA100, breadth from the StockScans snapshot) → `ct_v3_features(q-1)` + `ct_v3_score(q-1)` for the live seasons →
+`ct_model_advance()` (only through sessions whose prices and breadth are complete) → `ct_v3_page_data()` into `ct_page('data')`.
+Health: `select kind, run_at, ok, note from ct_runs order by run_at desc limit 10;`  Manual run: `select ct_v3_nightly();` (~30 s).
 
-Check health: `select kind, run_at, ok, note from ct_runs order by run_at desc limit 20;`
-Run a build by hand: `select ct_nightly();` (≈70 s). Edge functions take `?reset=1` to restart today's job.
+Tables: `ct_days3`, `ct_mkt3`, `ct_breadth`, `ct_ev3` (features, scores, pr), `ct_model_pos` (`open` flag), `ct_model_trade`,
+`ct_model_day` (equity curve), `ct_model_orders` (decided at close d, executed at the next close).
+The model was replayed from 1 Jan 2025 with the live code; live from 13 Oct 2026.
 
-## 3. Rules (see research/README.md for numbers)
-drift_buy (PAT ≥25%, rev ≥15%, reaction ≥3%; 10-session window; ranked by reaction; ≤2 per sector up top; green only
-when market > 50-day average) · avoid_miss_fall · avoid_stressed · avoid_guidance_cut · guidance_missed ·
-flag_bulk_churn · flag_insider_sell · in_play_bulk · (shown, no edge: guidance_raised, promoter_buy).
-Defined in `ct_score_events()` (010_engine.sql). Adding a rule = add a CASE line there + label in web/index.html RULES.
+## 4. Page deploy
+Build: `CT_WORK=<work dir> python3 research/v3/build_site.py <report_url> '<validation json>'` writes `<work>/site/`
+(evidence numbers come from `<work>/data/report.json`, produced by `research/v3/report_data.py`). Then
+`CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=… npx wrangler pages deploy <work>/site --project-name confluence-terminal --branch main`
+(token and account id in `ct_secret`).
 
-## 4. Known gaps / next steps
-1. **StockScans scan research**: history pull (`research/pull_ss_scanhist.py`) was mid-way on 12 Oct (month-ends from
-   Jun 2026 back). Finish it, load into `ct_ss_scan` via ct-ingest, then study scan *entries* → add any scan with a real
-   edge as a rule. Note: a dated snapshot for the current day is empty until StockScans fills it; daily pull uses "Latest".
-2. StockScans cookie expires **21 Oct 2026** → Rishabh pastes a fresh Copy-as-cURL; update `ct_secret.stockscans_cookie`.
-3. Forward-track the new concall fields (candor, tone, earnings quality) and StockScans result score; promote only with evidence.
-4. Track record starts 12 Oct 2026 (`ct_pick_log`). Compare live vs history monthly; no rule changes on a few weeks of data.
-5. Optional: StockEdge regime layer; guidance-vs-delivery history per company (EquiSense `guidanceDelivery` across quarters).
-6. Axis Finance personal-dealing policy check before sharing any recos (open since Oct).
+## 5. Open items
+1. **Repo still public** → Rishabh to switch to private (GitHub Settings → General → Danger zone).
+2. StockScans cookie expires **21 Oct 2026** → fresh Copy-as-cURL; update `ct_secret.stockscans_cookie`. Breadth (one gauge vote) depends on it; without it the gauge falls back to the last known breadth.
+3. `ct_ev` (v2, ~99 MB) can be truncated to free space (DB ~350 MB of 500 MB). Needs an approval prompt.
+4. Watch-only hints (≈1 year of data, not rules): bulk/block buys ≥0.5% mcap positive; non-promoter insider selling negative; order-win filings no edge. Re-test once 2+ years exist.
+5. Don't change rules on a few weeks of live data; review the live vs simulated record each season.
 
-## 5. Lessons
+## 6. Lessons
 - EquiSense `ecsScore`, `marketCap`, `pe` in history are TODAY's values → never backtest them.
-- Supabase MCP migrations containing DELETE/DROP trigger an approval prompt; write upserts instead.
-- PostgREST anon calls to BP time out at 8 s → keep feed functions light.
-- GitHub API via this session proxy is repo-scoped (cannot create repos or touch Pages settings).
+- Rank against the previous season only (no look-ahead). Results filed >120 days after quarter end are restatements.
+- Simulator: at gauge 0 do not create zero-weight placeholder positions (bug fixed 13 Oct in `sim2.py`).
+- BSE 500 / Sensex series from StockScans have a 19-month gap (2024-04 → 2025-11): use Nifty 50 / Smallcap 250.
+- Supabase MCP migrations containing DELETE/DROP/TRUNCATE trigger an approval prompt; write upserts/flags instead.
+- `ct_prices.c` is float4: `round(double precision, int)` helper exists in CT.

@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 // Body: { table, rows, on_conflict }. Only whitelisted tables.
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const OK = new Set(["ct_es_results", "ct_es_concalls", "ct_es_smart", "ct_es_filings", "ct_ss_scan", "ct_ss_scan_def",
-  "ct_ss_concall", "ct_ss_market", "ct_snapshot", "ct_signal_stats", "ct_stock_map"]);
+  "ct_ss_concall", "ct_ss_market", "ct_snapshot", "ct_signal_stats", "ct_stock_map", "ct_res", "ct_prices", "ct_concall_lite", "ct_ss_panel"]);
 Deno.serve(async (req: Request) => {
   try {
     const { data } = await sb.from("ct_secret").select("v").eq("k", "ingest_key").single();
